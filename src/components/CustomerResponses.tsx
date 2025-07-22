@@ -1,5 +1,5 @@
 
-import { CustomerResponse, Product } from "./AdminDashboard";
+import { CustomerResponse, Product } from "@/types/catalog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -23,25 +23,25 @@ export const CustomerResponses = ({ responses, products }: CustomerResponsesProp
           <Card key={index} className="bg-white/5 border-white/20">
             <CardHeader>
               <CardTitle className="text-white flex items-center justify-between">
-                <span>{response.customerName}</span>
+                <span>{response.customer_name}</span>
                 <Badge variant="outline" className="border-white/30 text-white">
-                  {response.likedProducts.length} likes
+                  {response.liked_products.length} likes
                 </Badge>
               </CardTitle>
               <p className="text-white/60 text-sm">
-                {response.timestamp.toLocaleDateString()} at {response.timestamp.toLocaleTimeString()}
+                {new Date(response.created_at).toLocaleDateString()} at {new Date(response.created_at).toLocaleTimeString()}
               </p>
             </CardHeader>
             <CardContent>
               <h4 className="text-white mb-3">Liked Products:</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {response.likedProducts.map(productId => {
+                {response.liked_products.map(productId => {
                   const product = getProductById(productId);
                   return product ? (
                     <Card key={productId} className="bg-white/10 border-white/20">
                       <CardContent className="p-3">
                         <img
-                          src={product.imageUrl}
+                          src={product.image_url}
                           alt={product.name}
                           className="w-full h-24 object-cover rounded mb-2"
                         />

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Product } from "./AdminDashboard";
+import { Product } from "@/types/catalog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,7 +74,7 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
           <Card key={product.id} className="bg-white/10 backdrop-blur-md border-white/20 hover:scale-105 transition-transform duration-200">
             <CardContent className="p-4">
               <img
-                src={product.imageUrl}
+                src={product.image_url}
                 alt={product.name}
                 className="w-full h-48 object-cover rounded-lg mb-4"
               />

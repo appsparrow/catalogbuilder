@@ -14,7 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      catalog_products: {
+        Row: {
+          catalog_id: string | null
+          id: string
+          product_id: string | null
+        }
+        Insert: {
+          catalog_id?: string | null
+          id?: string
+          product_id?: string | null
+        }
+        Update: {
+          catalog_id?: string | null
+          id?: string
+          product_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_products_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "catalogs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalog_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      catalogs: {
+        Row: {
+          brand_name: string
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          shareable_link: string
+        }
+        Insert: {
+          brand_name: string
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          shareable_link: string
+        }
+        Update: {
+          brand_name?: string
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          shareable_link?: string
+        }
+        Relationships: []
+      }
+      customer_responses: {
+        Row: {
+          catalog_id: string | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string
+          id: string
+          liked_products: string[] | null
+          response_data: Json | null
+        }
+        Insert: {
+          catalog_id?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name: string
+          id?: string
+          liked_products?: string[] | null
+          response_data?: Json | null
+        }
+        Update: {
+          catalog_id?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          id?: string
+          liked_products?: string[] | null
+          response_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_responses_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "catalogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category: string
+          code: string
+          created_at: string | null
+          id: string
+          image_url: string
+          name: string
+          original_image_url: string | null
+          supplier: string
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string | null
+          id?: string
+          image_url: string
+          name: string
+          original_image_url?: string | null
+          supplier: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          name?: string
+          original_image_url?: string | null
+          supplier?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Product, CustomCatalog } from "./AdminDashboard";
+import { Product, CatalogWithProducts } from "@/types/catalog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,14 @@ import { Plus, Share, Eye, Trash2 } from "lucide-react";
 
 interface CatalogBuilderProps {
   products: Product[];
-  onCatalogCreate: (catalog: CustomCatalog) => void;
-  catalogs: CustomCatalog[];
+  onCatalogCreate: (catalogData: {
+    name: string;
+    brand_name: string;
+    logo_url?: string;
+    customer_name: string;
+    product_ids: string[];
+  }) => Promise<any>;
+  catalogs: CatalogWithProducts[];
 }
 
 export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogBuilderProps) => {
@@ -31,7 +37,7 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
     }
   };
 
-  const handleCreateCatalog = () => {
+  const handleCreateCatalog = async () => {
     if (!catalogName || !brandName || !customerName || selectedProducts.length === 0) {
       toast({
         title: "Missing Information",
@@ -41,33 +47,24 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
       return;
     }
 
-    const selectedProductsData = products.filter(p => selectedProducts.includes(p.id));
-    const shareableLink = `${window.location.origin}/catalog/${crypto.randomUUID()}`;
+    try {
+      await onCatalogCreate({
+        name: catalogName,
+        brand_name: brandName,
+        logo_url: logoUrl,
+        customer_name: customerName,
+        product_ids: selectedProducts
+      });
 
-    const newCatalog: CustomCatalog = {
-      id: crypto.randomUUID(),
-      name: catalogName,
-      brandName,
-      logoUrl,
-      products: selectedProductsData,
-      customerName,
-      shareableLink,
-      createdAt: new Date()
-    };
-
-    onCatalogCreate(newCatalog);
-
-    // Reset form
-    setCatalogName("");
-    setBrandName("");
-    setCustomerName("");
-    setLogoUrl("");
-    setSelectedProducts([]);
-
-    toast({
-      title: "Catalog Created",
-      description: "Custom catalog has been created successfully",
-    });
+      // Reset form
+      setCatalogName("");
+      setBrandName("");
+      setCustomerName("");
+      setLogoUrl("");
+      setSelectedProducts([]);
+    } catch (error) {
+      console.error('Error creating catalog:', error);
+    }
   };
 
   const copyShareLink = (link: string) => {
@@ -146,11 +143,11 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
                         className="mt-1"
                       />
                       <div className="flex-1 min-w-0">
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="w-full h-24 object-cover rounded mb-2"
-                        />
+                         <img
+                           src={product.image_url}
+                           alt={product.name}
+                           className="w-full h-24 object-cover rounded mb-2"
+                         />
                         <h4 className="text-white text-sm font-medium truncate">{product.name}</h4>
                         <p className="text-white/60 text-xs">{product.code}</p>
                         <div className="flex gap-1 mt-1">
@@ -177,34 +174,33 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
       <div>
         <h3 className="text-2xl font-bold text-white mb-4">Created Catalogs</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {catalogs.map(catalog => (
-            <Card key={catalog.id} className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-4">
-                <h4 className="text-white font-semibold mb-2">{catalog.name}</h4>
-                <p className="text-white/80 text-sm mb-2">Brand: {catalog.brandName}</p>
-                <p className="text-white/80 text-sm mb-2">Customer: {catalog.customerName}</p>
-                <p className="text-white/60 text-sm mb-4">{catalog.products.length} products</p>
-                
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => copyShareLink(catalog.shareableLink)}
-                    className="text-white border-white/30 hover:bg-white/20"
-                  >
-                    <Share className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-white border-white/30 hover:bg-white/20"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+           {catalogs.map(catalog => (
+             <Card key={catalog.id} className="bg-white/10 backdrop-blur-md border-white/20">
+               <CardContent className="p-4">
+                 <h4 className="text-white font-semibold mb-2">{catalog.name}</h4>
+                 <p className="text-white/80 text-sm mb-2">Brand: {catalog.brand_name}</p>
+                 <p className="text-white/60 text-sm mb-4">{catalog.products.length} products</p>
+                 
+                 <div className="flex gap-2">
+                   <Button
+                     size="sm"
+                     variant="outline"
+                     onClick={() => copyShareLink(`${window.location.origin}/catalog/${catalog.shareable_link}`)}
+                     className="text-white border-white/30 hover:bg-white/20"
+                   >
+                     <Share className="h-4 w-4" />
+                   </Button>
+                   <Button
+                     size="sm"
+                     variant="outline"
+                     className="text-white border-white/30 hover:bg-white/20"
+                   >
+                     <Eye className="h-4 w-4" />
+                   </Button>
+                 </div>
+               </CardContent>
+             </Card>
+           ))}
         </div>
       </div>
     </div>

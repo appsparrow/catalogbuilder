@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, Plus } from "lucide-react";
-import { Product } from "./AdminDashboard";
+import { Product } from "@/types/catalog";
 import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploaderProps {
-  onProductAdd: (product: Product) => void;
+  onProductAdd: (product: Omit<Product, 'id' | 'created_at'>) => Promise<Product>;
+  uploadImage: (file: File, productCode: string) => Promise<string>;
 }
 
 const categories = [
@@ -26,7 +27,7 @@ const categories = [
 
 const suppliers = ["Supplier A", "Supplier B", "Supplier C"];
 
-export const ImageUploader = ({ onProductAdd }: ImageUploaderProps) => {
+export const ImageUploader = ({ onProductAdd, uploadImage }: ImageUploaderProps) => {
   const [formData, setFormData] = useState({
     name: "",
     code: "",
@@ -43,7 +44,7 @@ export const ImageUploader = ({ onProductAdd }: ImageUploaderProps) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.imageFile || !formData.name || !formData.code || !formData.category || !formData.supplier) {
@@ -55,38 +56,37 @@ export const ImageUploader = ({ onProductAdd }: ImageUploaderProps) => {
       return;
     }
 
-    // Create a URL for the uploaded image (in a real app, you'd upload to a cloud service)
-    const imageUrl = URL.createObjectURL(formData.imageFile);
+    try {
+      // Upload image to Supabase storage
+      const imageUrl = await uploadImage(formData.imageFile, formData.code);
 
-    const newProduct: Product = {
-      id: crypto.randomUUID(),
-      name: formData.name,
-      code: formData.code,
-      category: formData.category,
-      supplier: formData.supplier,
-      imageUrl,
-      createdAt: new Date()
-    };
+      const newProduct = {
+        name: formData.name,
+        code: formData.code,
+        category: formData.category,
+        supplier: formData.supplier,
+        image_url: imageUrl,
+        original_image_url: imageUrl
+      };
 
-    onProductAdd(newProduct);
-    
-    // Reset form
-    setFormData({
-      name: "",
-      code: "",
-      category: "",
-      supplier: "",
-      imageFile: null
-    });
-    
-    // Reset file input
-    const fileInput = document.getElementById('image-upload') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
+      await onProductAdd(newProduct);
+      
+      // Reset form
+      setFormData({
+        name: "",
+        code: "",
+        category: "",
+        supplier: "",
+        imageFile: null
+      });
+      
+      // Reset file input
+      const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
 
-    toast({
-      title: "Product Added",
-      description: "Product has been successfully added to your catalog",
-    });
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
   };
 
   return (
