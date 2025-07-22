@@ -10,7 +10,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="bg-gradient-mixed border-b p-4">
+      <nav className="bg-gradient-mixed border-b border-border p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">CatalogPro</h1>
           <div className="flex gap-2">

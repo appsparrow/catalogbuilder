@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Product, CatalogWithProducts } from "@/types/catalog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Share, Eye, Trash2 } from "lucide-react";
+import { Plus, Share, Eye, ExternalLink } from "lucide-react";
 
 interface CatalogBuilderProps {
   products: Product[];
@@ -68,62 +69,64 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
   };
 
   const copyShareLink = (link: string) => {
-    navigator.clipboard.writeText(link);
+    const fullLink = `${window.location.origin}/catalog/${link}`;
+    navigator.clipboard.writeText(fullLink);
     toast({
       title: "Link Copied",
-      description: "Shareable link has been copied to clipboard",
+      description: "Shareable catalog link has been copied to clipboard",
     });
+  };
+
+  const openCatalog = (link: string) => {
+    const fullLink = `${window.location.origin}/catalog/${link}`;
+    window.open(fullLink, '_blank');
   };
 
   return (
     <div className="space-y-8">
       {/* Catalog Creation Form */}
-      <Card className="bg-white/5 border-white/20">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-white">Create New Catalog</CardTitle>
+          <CardTitle className="text-foreground">Create New Catalog</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="catalog-name" className="text-white">Catalog Name</Label>
+              <Label htmlFor="catalog-name" className="text-foreground">Catalog Name</Label>
               <Input
                 id="catalog-name"
                 value={catalogName}
                 onChange={(e) => setCatalogName(e.target.value)}
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/60"
                 placeholder="Enter catalog name"
               />
             </div>
             
             <div>
-              <Label htmlFor="brand-name" className="text-white">Brand Name</Label>
+              <Label htmlFor="brand-name" className="text-foreground">Brand Name</Label>
               <Input
                 id="brand-name"
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/60"
                 placeholder="Enter your brand name"
               />
             </div>
 
             <div>
-              <Label htmlFor="customer-name" className="text-white">Customer Name</Label>
+              <Label htmlFor="customer-name" className="text-foreground">Customer Name</Label>
               <Input
                 id="customer-name"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/60"
                 placeholder="Enter customer name"
               />
             </div>
 
             <div>
-              <Label htmlFor="logo-url" className="text-white">Logo URL (Optional)</Label>
+              <Label htmlFor="logo-url" className="text-foreground">Logo URL (Optional)</Label>
               <Input
                 id="logo-url"
                 value={logoUrl}
                 onChange={(e) => setLogoUrl(e.target.value)}
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/60"
                 placeholder="Enter logo URL"
               />
             </div>
@@ -131,10 +134,10 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
 
           {/* Product Selection */}
           <div>
-            <Label className="text-white mb-4 block">Select Products</Label>
+            <Label className="text-foreground mb-4 block">Select Products ({selectedProducts.length} selected)</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
               {products.map(product => (
-                <Card key={product.id} className="bg-white/10 border-white/20">
+                <Card key={product.id} className="border-border">
                   <CardContent className="p-3">
                     <div className="flex items-start space-x-3">
                       <Checkbox
@@ -148,10 +151,10 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
                            alt={product.name}
                            className="w-full h-24 object-cover rounded mb-2"
                          />
-                        <h4 className="text-white text-sm font-medium truncate">{product.name}</h4>
-                        <p className="text-white/60 text-xs">{product.code}</p>
+                        <h4 className="text-foreground text-sm font-medium truncate">{product.name}</h4>
+                        <p className="text-muted-foreground text-xs">{product.code}</p>
                         <div className="flex gap-1 mt-1">
-                          <Badge variant="secondary" className="bg-white/20 text-white text-xs">
+                          <Badge variant="secondary" className="text-xs">
                             {product.category}
                           </Badge>
                         </div>
@@ -163,7 +166,10 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
             </div>
           </div>
 
-          <Button onClick={handleCreateCatalog} className="bg-white text-purple-600 hover:bg-white/90">
+          <Button 
+            onClick={handleCreateCatalog} 
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Create Catalog
           </Button>
@@ -172,36 +178,51 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
 
       {/* Existing Catalogs */}
       <div>
-        <h3 className="text-2xl font-bold text-white mb-4">Created Catalogs</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-           {catalogs.map(catalog => (
-             <Card key={catalog.id} className="bg-white/10 backdrop-blur-md border-white/20">
-               <CardContent className="p-4">
-                 <h4 className="text-white font-semibold mb-2">{catalog.name}</h4>
-                 <p className="text-white/80 text-sm mb-2">Brand: {catalog.brand_name}</p>
-                 <p className="text-white/60 text-sm mb-4">{catalog.products.length} products</p>
-                 
-                 <div className="flex gap-2">
-                   <Button
-                     size="sm"
-                     variant="outline"
-                     onClick={() => copyShareLink(`${window.location.origin}/catalog/${catalog.shareable_link}`)}
-                     className="text-white border-white/30 hover:bg-white/20"
-                   >
-                     <Share className="h-4 w-4" />
-                   </Button>
-                   <Button
-                     size="sm"
-                     variant="outline"
-                     className="text-white border-white/30 hover:bg-white/20"
-                   >
-                     <Eye className="h-4 w-4" />
-                   </Button>
-                 </div>
-               </CardContent>
-             </Card>
-           ))}
-        </div>
+        <h3 className="text-2xl font-bold text-foreground mb-4">Created Catalogs ({catalogs.length})</h3>
+        {catalogs.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">No catalogs created yet. Create your first catalog above!</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {catalogs.map(catalog => (
+               <Card key={catalog.id} className="border-border hover:shadow-lg transition-shadow">
+                 <CardContent className="p-4">
+                   <h4 className="text-foreground font-semibold mb-2">{catalog.name}</h4>
+                   <p className="text-muted-foreground text-sm mb-2">Brand: {catalog.brand_name}</p>
+                   <p className="text-muted-foreground text-sm mb-4">{catalog.products.length} products</p>
+                   
+                   <div className="flex gap-2 flex-wrap">
+                     <Button
+                       size="sm"
+                       variant="outline"
+                       onClick={() => copyShareLink(catalog.shareable_link)}
+                       className="flex-1"
+                     >
+                       <Share className="mr-1 h-4 w-4" />
+                       Copy Link
+                     </Button>
+                     <Button
+                       size="sm"
+                       variant="outline"
+                       onClick={() => openCatalog(catalog.shareable_link)}
+                       className="flex-1"
+                     >
+                       <ExternalLink className="mr-1 h-4 w-4" />
+                       Preview
+                     </Button>
+                   </div>
+                   
+                   <div className="mt-2 text-xs text-muted-foreground break-all">
+                     Link: /catalog/{catalog.shareable_link}
+                   </div>
+                 </CardContent>
+               </Card>
+             ))}
+          </div>
+        )}
       </div>
     </div>
   );
