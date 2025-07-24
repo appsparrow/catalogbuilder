@@ -3,12 +3,13 @@ import { MainDashboard } from "@/components/MainDashboard";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Package, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [activeView, setActiveView] = useState<'main' | 'products' | 'catalogs'>('main');
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
@@ -58,9 +59,31 @@ const Index = () => {
         </div>
       </nav>
 
-      <main>
+      <main className="flex-1">
         <MainDashboard activeView={activeView} onViewChange={setActiveView} />
       </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-400 py-6 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <p className="text-sm">
+                Built with ❤️ by <span className="text-white font-medium">Cuzata</span> for{" "}
+                <span className="text-white font-medium">Illus Decor</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link to="/features" className="text-sm hover:text-white transition-colors">
+                MVP Features
+              </Link>
+              <p className="text-xs opacity-75">
+                © 2024 Cuzata. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

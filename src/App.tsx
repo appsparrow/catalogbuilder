@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import CatalogPage from "./pages/CatalogPage";
 import NotFound from "./pages/NotFound";
+import MVPFeatures from "./pages/MVPFeatures";
 import { AuthPopup } from "./components/AuthPopup";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/catalog/:shareableLink" element={<CatalogPage />} />
+            <Route path="/features" element={<MVPFeatures />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
