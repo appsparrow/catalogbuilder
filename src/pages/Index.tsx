@@ -69,8 +69,29 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <p className="text-sm">
-                Built with ❤️ by <span className="text-white font-medium">Cuzata</span> for{" "}
-                <span className="text-white font-medium">Illus Decor</span>
+                <a 
+                  href="https://lovable.dev/invite/7ea3252a-98b9-4671-ba20-2292bced6e46" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                >
+                  <img 
+                    src="/lovable-uploads/ad9485b6-d796-4b14-a5b2-0701ba070683.png" 
+                    alt="Lovable" 
+                    className="h-4 w-4 rounded"
+                  />
+                  Lovable app
+                </a>{" "}
+                built by human at{" "}
+                <span className="text-white font-medium">Cuzata</span> for{" "}
+                <a 
+                  href="https://illus.in" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-white font-medium hover:underline"
+                >
+                  Illus Decor
+                </a>
               </p>
             </div>
             <div className="flex items-center gap-4">

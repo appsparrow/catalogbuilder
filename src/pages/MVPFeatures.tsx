@@ -13,7 +13,8 @@ import {
   MessageSquare,
   TrendingUp,
   Clock,
-  Globe
+  Globe,
+  Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -72,10 +73,11 @@ const MVPFeatures = () => {
     {
       category: "Product Management",
       items: [
-        "Bulk image upload with AI-powered organization",
+        "Bulk image upload with drag-and-drop interface",
         "Product categorization and tagging",
         "Supplier information tracking",
-        "Product code and SKU management"
+        "Product code and SKU management",
+        "Brand logo overlay on catalogs"
       ]
     },
     {
@@ -84,7 +86,8 @@ const MVPFeatures = () => {
         "Drag-and-drop product selection",
         "Custom catalog naming and branding",
         "Professional catalog layouts",
-        "Export to PDF or shareable links"
+        "Export to PDF or shareable links",
+        "Mobile-responsive design"
       ]
     },
     {
@@ -93,16 +96,18 @@ const MVPFeatures = () => {
         "Mobile-responsive catalog viewing",
         "Product liking and preference tracking",
         "Customer feedback collection",
-        "Seamless sharing experience"
+        "Seamless sharing experience",
+        "Real-time catalog updates"
       ]
     },
     {
-      category: "Sales & Analytics",
+      category: "AI Features (Coming Soon)",
       items: [
-        "Customer preference analytics",
-        "Catalog performance tracking",
-        "Sales conversation insights",
-        "Customer engagement metrics"
+        "Auto-extract product details from images",
+        "AI-powered image cleanup and enhancement",
+        "Automatic product categorization",
+        "Smart product recommendations",
+        "Background removal and optimization"
       ]
     }
   ];
@@ -243,7 +248,11 @@ const MVPFeatures = () => {
               <Card key={index}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
+                    {category.category.includes("AI") ? (
+                      <Sparkles className="h-5 w-5 text-purple-500" />
+                    ) : (
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                    )}
                     {category.category}
                   </CardTitle>
                 </CardHeader>
@@ -280,7 +289,7 @@ const MVPFeatures = () => {
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-purple-600 hover:bg-white hover:text-blue-600">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-red-600 hover:bg-white hover:text-blue-600">
                   Schedule a Demo
                 </Button>
               </div>
@@ -293,11 +302,32 @@ const MVPFeatures = () => {
       <footer className="bg-gray-900 text-gray-400 py-8 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center">
-            <p className="text-sm">
-              Built with ❤️ by <span className="text-white font-medium">Cuzata</span> for{" "}
-              <span className="text-white font-medium">Illus Decor</span>
+            <p className="text-sm mb-2">
+              <a 
+                href="https://lovable.dev/invite/7ea3252a-98b9-4671-ba20-2292bced6e46" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 hover:text-white transition-colors"
+              >
+                <img 
+                  src="/lovable-uploads/ad9485b6-d796-4b14-a5b2-0701ba070683.png" 
+                  alt="Lovable" 
+                  className="h-4 w-4 rounded"
+                />
+                Lovable app
+              </a>{" "}
+              built by human at{" "}
+              <span className="text-white font-medium">Cuzata</span> for{" "}
+              <a 
+                href="https://illus.in" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-white font-medium hover:underline"
+              >
+                Illus Decor
+              </a>
             </p>
-            <p className="text-xs mt-2 opacity-75">
+            <p className="text-xs opacity-75">
               © 2024 Cuzata. All rights reserved.
             </p>
           </div>
