@@ -12,7 +12,9 @@ const Index = () => {
               alt="CUZATA Logo" 
               className="h-8 w-8"
             />
-            <h1 className="text-2xl font-bold text-foreground">CUZATA</h1>
+            <h1 className="text-2xl font-bold bg-gradient-mixed bg-clip-text text-transparent">
+              CUZATA
+            </h1>
           </div>
         </div>
       </nav>
