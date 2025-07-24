@@ -3,8 +3,8 @@ import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Edit } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Upload, X, Edit, Check, ArrowRight } from "lucide-react";
 
 interface UploadedImage {
   id: string;
@@ -25,21 +25,16 @@ interface BulkImageUploadProps {
 
 export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUploadProps) => {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-  const { toast } = useToast();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newImages: UploadedImage[] = acceptedFiles.map(file => ({
-      id: `${Date.now()}-${Math.random()}`,
+    const newImages = acceptedFiles.map(file => ({
+      id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       file,
       preview: URL.createObjectURL(file)
     }));
-
+    
     setUploadedImages(prev => [...prev, ...newImages]);
-    toast({
-      title: "Images uploaded",
-      description: `${acceptedFiles.length} images ready for processing`
-    });
-  }, [toast]);
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -49,130 +44,151 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
     multiple: true
   });
 
-  const removeImage = (id: string) => {
-    setUploadedImages(prev => {
-      const updated = prev.filter(img => img.id !== id);
-      const removed = prev.find(img => img.id === id);
-      if (removed) {
-        URL.revokeObjectURL(removed.preview);
-      }
-      return updated;
-    });
+  const removeImage = (imageId: string) => {
+    setUploadedImages(prev => prev.filter(img => img.id !== imageId));
   };
 
   const processImages = () => {
-    const incompleteImages = uploadedImages.filter(img => !img.details);
-    if (incompleteImages.length > 0) {
-      toast({
-        title: "Incomplete details",
-        description: `Please add details for ${incompleteImages.length} images`,
-        variant: "destructive"
-      });
-      return;
+    const imagesWithDetails = uploadedImages.filter(img => img.details);
+    if (imagesWithDetails.length > 0) {
+      onImagesProcessed(imagesWithDetails);
     }
-    onImagesProcessed(uploadedImages);
   };
+
+  const imagesWithDetails = uploadedImages.filter(img => img.details);
+  const imagesWithoutDetails = uploadedImages.filter(img => !img.details);
 
   return (
     <div className="space-y-6">
       {/* Upload Area */}
       <Card>
-        <CardContent className="p-8">
+        <CardContent className="p-6">
           <div
             {...getRootProps()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               isDragActive 
                 ? 'border-primary bg-primary/5' 
-                : 'border-border hover:border-primary/50'
+                : 'border-muted-foreground/25 hover:border-primary hover:bg-muted/50'
             }`}
           >
             <input {...getInputProps()} />
             <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              {isDragActive ? 'Drop images here' : 'Drag & drop images here'}
-            </h3>
-            <p className="text-muted-foreground mb-4">or click to select files</p>
+            <h3 className="text-lg font-semibold mb-2">Upload Product Images</h3>
+            <p className="text-muted-foreground mb-4">
+              {isDragActive
+                ? "Drop the images here..."
+                : "Drag & drop images here, or click to select files"}
+            </p>
             <p className="text-sm text-muted-foreground">
-              Supports: JPG, PNG, WebP (multiple files)
+              Supports: JPEG, PNG, WebP
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Uploaded Images Grid */}
-      {uploadedImages.length > 0 && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
-                Uploaded Images ({uploadedImages.length})
-              </h3>
-              <Button 
-                onClick={processImages}
-                disabled={uploadedImages.some(img => !img.details)}
-              >
-                Process All Images
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {uploadedImages.map(image => (
-                <div key={image.id} className="relative group">
-                  <Card className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <img
-                        src={image.preview}
-                        alt="Upload preview"
-                        className="w-full h-32 object-cover"
-                      />
-                      <div className="p-2">
-                        {image.details ? (
-                          <div>
-                            <p className="text-sm font-medium truncate">
-                              {image.details.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {image.details.code}
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">
-                            Click to add details
-                          </p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Action buttons */}
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Unprocessed Images */}
+      {imagesWithoutDetails.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-lg font-semibold">Unprocessed Images</h3>
+            <Badge variant="outline">{imagesWithoutDetails.length}</Badge>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {imagesWithoutDetails.map(image => (
+              <Card key={image.id} className="overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="relative">
+                    <img
+                      src={image.preview}
+                      alt="Product"
+                      className="w-full h-32 object-cover"
+                    />
                     <Button
-                      size="icon"
-                      variant="secondary"
-                      className="h-6 w-6"
-                      onClick={() => onEditImage(image)}
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="icon"
+                      size="sm"
                       variant="destructive"
-                      className="h-6 w-6"
+                      className="absolute top-2 right-2 h-6 w-6 p-0"
                       onClick={() => removeImage(image.id)}
                     >
                       <X className="h-3 w-3" />
                     </Button>
                   </div>
-                  
-                  {/* Status indicator */}
-                  <div className={`absolute top-2 left-2 w-3 h-3 rounded-full ${
-                    image.details ? 'bg-green-500' : 'bg-yellow-500'
-                  }`} />
-                </div>
-              ))}
+                  <div className="p-3">
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => onEditImage(image)}
+                    >
+                      <Edit className="mr-2 h-3 w-3" />
+                      Add Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Processed Images Ready to Upload */}
+      {imagesWithDetails.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">Ready to Process</h3>
+              <Badge variant="default">{imagesWithDetails.length}</Badge>
             </div>
-          </CardContent>
-        </Card>
+            <Button onClick={processImages} className="flex items-center gap-2">
+              <Check className="h-4 w-4" />
+              Process {imagesWithDetails.length} Products
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {imagesWithDetails.map(image => (
+              <Card key={image.id} className="overflow-hidden border-green-200">
+                <CardContent className="p-0">
+                  <div className="relative">
+                    <img
+                      src={image.preview}
+                      alt="Product"
+                      className="w-full h-32 object-cover"
+                    />
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="default" className="bg-green-600">
+                        <Check className="h-3 w-3 mr-1" />
+                        Ready
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <h4 className="font-medium truncate">{image.details?.name}</h4>
+                    <p className="text-sm text-muted-foreground">{image.details?.code}</p>
+                    <div className="flex gap-1 mt-2">
+                      <Badge variant="secondary" className="text-xs">{image.details?.category}</Badge>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={() => onEditImage(image)}
+                    >
+                      <Edit className="mr-2 h-3 w-3" />
+                      Edit Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {uploadedImages.length === 0 && (
+        <div className="text-center py-12">
+          <Upload className="mx-auto h-16 w-16 text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-semibold text-muted-foreground">No images uploaded yet</h3>
+          <p className="text-muted-foreground">Start by uploading some product images above</p>
+        </div>
       )}
     </div>
   );

@@ -7,6 +7,9 @@ import { CatalogCreator } from "./CatalogCreator";
 import { useProducts } from "@/hooks/useProducts";
 import { useCatalogs } from "@/hooks/useCatalogs";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Upload, Package, FileText, ArrowLeft } from "lucide-react";
 
 interface UploadedImage {
   id: string;
@@ -24,7 +27,6 @@ type ViewState = 'upload' | 'products' | 'create-catalog';
 
 export const MainDashboard = () => {
   const [currentView, setCurrentView] = useState<ViewState>('upload');
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [editingImage, setEditingImage] = useState<UploadedImage | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   
@@ -37,11 +39,8 @@ export const MainDashboard = () => {
   };
 
   const handleSaveImageDetails = (imageId: string, details: any) => {
-    setUploadedImages(prev => 
-      prev.map(img => 
-        img.id === imageId ? { ...img, details } : img
-      )
-    );
+    // This is handled in BulkImageUpload component
+    setEditingImage(null);
   };
 
   const handleImagesProcessed = async (images: UploadedImage[]) => {
@@ -63,8 +62,6 @@ export const MainDashboard = () => {
         }
       }
       
-      // Clear uploaded images and go to products view
-      setUploadedImages([]);
       setCurrentView('products');
       
       toast({
@@ -103,57 +100,116 @@ export const MainDashboard = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-card">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Product Catalog Builder</h1>
+              <p className="text-muted-foreground">Upload products and create custom catalogs</p>
+            </div>
+            
+            {/* Progress Indicator */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                  currentView === 'upload' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                }`}>
+                  <Upload className="h-4 w-4" />
+                  <span className="text-sm font-medium">1. Upload</span>
+                </div>
+                <div className="w-8 h-px bg-border" />
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                  currentView === 'products' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                }`}>
+                  <Package className="h-4 w-4" />
+                  <span className="text-sm font-medium">2. Products</span>
+                  {products.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">{products.length}</Badge>
+                  )}
+                </div>
+                <div className="w-8 h-px bg-border" />
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                  currentView === 'create-catalog' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                }`}>
+                  <FileText className="h-4 w-4" />
+                  <span className="text-sm font-medium">3. Catalog</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
       {/* Navigation */}
-      <div className="mb-8">
-        <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit">
-          <button
-            onClick={() => setCurrentView('upload')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              currentView === 'upload' 
-                ? 'bg-background text-foreground shadow-sm' 
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Upload Images
-          </button>
-          <button
-            onClick={() => setCurrentView('products')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              currentView === 'products' 
-                ? 'bg-background text-foreground shadow-sm' 
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Products Library ({products.length})
-          </button>
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center gap-4">
+          {currentView !== 'upload' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (currentView === 'create-catalog') {
+                  setCurrentView('products');
+                } else {
+                  setCurrentView('upload');
+                }
+              }}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          )}
+          
+          <div className="flex gap-2">
+            <Button
+              variant={currentView === 'upload' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentView('upload')}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Images
+            </Button>
+            <Button
+              variant={currentView === 'products' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentView('products')}
+              disabled={products.length === 0}
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Products Library ({products.length})
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      {currentView === 'upload' && (
-        <BulkImageUpload
-          onImagesProcessed={handleImagesProcessed}
-          onEditImage={handleImageEdit}
-        />
-      )}
+      <main className="max-w-7xl mx-auto px-6 pb-12">
+        {currentView === 'upload' && (
+          <BulkImageUpload
+            onImagesProcessed={handleImagesProcessed}
+            onEditImage={handleImageEdit}
+          />
+        )}
 
-      {currentView === 'products' && (
-        <ProductsLibrary
-          products={products}
-          selectedProducts={selectedProducts}
-          onProductSelect={handleProductSelect}
-          onCreateCatalog={handleCreateCatalog}
-        />
-      )}
+        {currentView === 'products' && (
+          <ProductsLibrary
+            products={products}
+            selectedProducts={selectedProducts}
+            onProductSelect={handleProductSelect}
+            onCreateCatalog={handleCreateCatalog}
+          />
+        )}
 
-      {currentView === 'create-catalog' && (
-        <CatalogCreator
-          selectedProducts={getSelectedProductsData()}
-          onBack={() => setCurrentView('products')}
-          onCatalogCreate={handleCatalogCreate}
-        />
-      )}
+        {currentView === 'create-catalog' && (
+          <CatalogCreator
+            selectedProducts={getSelectedProductsData()}
+            onBack={() => setCurrentView('products')}
+            onCatalogCreate={handleCatalogCreate}
+          />
+        )}
+      </main>
 
       {/* Modal */}
       <ProductDetailsModal

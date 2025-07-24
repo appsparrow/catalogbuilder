@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 interface UploadedImage {
   id: string;
@@ -63,6 +64,13 @@ export const ProductDetailsModal = ({ image, isOpen, onClose, onSave }: ProductD
       return;
     }
     
+    // Update the image details in the parent component
+    if (image.details) {
+      image.details = formData;
+    } else {
+      (image as any).details = formData;
+    }
+    
     onSave(image.id, formData);
     onClose();
   };
@@ -73,17 +81,27 @@ export const ProductDetailsModal = ({ image, isOpen, onClose, onSave }: ProductD
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Product Details</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Add Product Details
+            {image.details && (
+              <Badge variant="outline" className="text-xs">
+                Editing
+              </Badge>
+            )}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Image Preview */}
-          <div>
-            <img
-              src={image.preview}
-              alt="Product"
-              className="w-full h-64 object-cover rounded-lg"
-            />
+          <div className="space-y-2">
+            <Label>Product Image</Label>
+            <div className="border rounded-lg overflow-hidden">
+              <img
+                src={image.preview}
+                alt="Product"
+                className="w-full h-64 object-cover"
+              />
+            </div>
           </div>
           
           {/* Form */}
@@ -145,6 +163,24 @@ export const ProductDetailsModal = ({ image, isOpen, onClose, onSave }: ProductD
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="pt-4 border-t">
+              <div className="text-sm text-muted-foreground mb-2">Preview:</div>
+              {formData.name && (
+                <div className="space-y-1">
+                  <div className="font-medium">{formData.name}</div>
+                  <div className="text-sm text-muted-foreground">{formData.code}</div>
+                  <div className="flex gap-2">
+                    {formData.category && (
+                      <Badge variant="secondary">{formData.category}</Badge>
+                    )}
+                    {formData.supplier && (
+                      <Badge variant="outline">{formData.supplier}</Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
@@ -156,7 +192,7 @@ export const ProductDetailsModal = ({ image, isOpen, onClose, onSave }: ProductD
             onClick={handleSave}
             disabled={!formData.name || !formData.category || !formData.supplier}
           >
-            Save Details
+            {image.details ? 'Update Details' : 'Save Details'}
           </Button>
         </div>
       </DialogContent>
