@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Search, Package, FileText, ArrowRight } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Search, Package, FileText, ArrowRight, Filter } from "lucide-react";
 import { Product } from "@/types/catalog";
 
 interface ProductsLibraryProps {
@@ -22,12 +23,27 @@ export const ProductsLibrary = ({
   onCreateCatalog 
 }: ProductsLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique categories
+  const categories = useMemo(() => {
+    const uniqueCategories = [...new Set(products.map(p => p.category))];
+    return ["all", ...uniqueCategories];
+  }, [products]);
+
+  // Filter products by search term and category
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      const matchesSearch = 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchTerm, selectedCategory]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -55,14 +71,38 @@ export const ProductsLibrary = ({
       {/* Search and Filters */}
       <Card>
         <CardContent className="p-3 sm:p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search products by name, code, or category..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="space-y-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search products by name, code, or category..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Category Filter */}
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Filter by Category
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map(category => (
+                  <Button
+                    key={category}
+                    variant={selectedCategory === category ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category)}
+                    className="text-xs sm:text-sm"
+                  >
+                    {category === "all" ? "All Categories" : category}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -78,7 +118,7 @@ export const ProductsLibrary = ({
             <p className="text-sm sm:text-base text-muted-foreground">
               {products.length === 0 
                 ? "Upload some images first to get started" 
-                : "Try adjusting your search terms"
+                : "Try adjusting your search terms or category filter"
               }
             </p>
           </CardContent>
