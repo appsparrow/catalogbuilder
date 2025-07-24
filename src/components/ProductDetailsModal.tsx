@@ -32,11 +32,11 @@ interface ProductDetailsModalProps {
 }
 
 const categories = [
-  "Chair", "Table", "Dining Table", "Sofa", "Center Table", 
-  "Bed", "Wardrobe", "Desk", "Bookshelf", "Cabinet"
+  "Sofa", "Dining Chairs", "Dining Table", "Beds", "Bed Side Table", 
+  "Corner Table", "Lounge Chair", "Bedroom Couch"
 ];
 
-const suppliers = ["Supplier A", "Supplier B", "Supplier C", "Supplier D"];
+const suppliers = ["UTD", "BKS", "BOB"];
 
 export const ProductDetailsModal = ({ image, isOpen, onClose, onSave }: ProductDetailsModalProps) => {
   const [formData, setFormData] = useState({
