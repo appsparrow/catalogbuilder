@@ -107,25 +107,25 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6">
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-8 sm:mb-12">
         <Card className="bg-white/95 backdrop-blur-md border-border">
-          <CardContent className="p-8">
+          <CardContent className="p-4 sm:p-8">
             {displayCatalog.logo_url && (
-              <img src={displayCatalog.logo_url} alt="Brand Logo" className="h-16 mx-auto mb-4" />
+              <img src={displayCatalog.logo_url} alt="Brand Logo" className="h-12 sm:h-16 mx-auto mb-4" />
             )}
-            <h1 className="text-4xl font-bold text-foreground mb-2">{displayCatalog.name}</h1>
-            <p className="text-xl text-primary mb-4">by {displayCatalog.brand_name}</p>
-            <p className="text-muted-foreground">Select products you're interested in</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">{displayCatalog.name}</h1>
+            <p className="text-lg sm:text-xl text-primary mb-4">by {displayCatalog.brand_name}</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Select products you're interested in</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Customer Info Form */}
-      <Card className="mb-8 bg-white/95 backdrop-blur-md border-border">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Card className="mb-6 sm:mb-8 bg-white/95 backdrop-blur-md border-border">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <Label htmlFor="customer-name" className="text-foreground">Your Name *</Label>
               <div className="relative">
@@ -159,7 +159,7 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
       </Card>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
         {displayCatalog.products.map(product => (
           <Card 
             key={product.id} 
@@ -170,34 +170,34 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
                 <img
                   src={product.image_url}
                   alt={product.name}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-48 sm:h-64 object-cover"
                 />
                 <Button
                   size="icon"
                   variant="ghost"
                   onClick={() => toggleLike(product.id)}
-                  className={`absolute top-4 right-4 ${
+                  className={`absolute top-2 right-2 sm:top-4 sm:right-4 ${
                     likedProducts.includes(product.id)
                       ? 'text-red-500 bg-white/90 hover:bg-white'
                       : 'text-muted-foreground bg-white/90 hover:bg-white'
                   } transition-all duration-200`}
                 >
                   <Heart 
-                    className={`h-5 w-5 ${
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${
                       likedProducts.includes(product.id) ? 'fill-current' : ''
                     }`} 
                   />
                 </Button>
               </div>
               
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-foreground mb-2">{product.name}</h3>
-                <p className="text-muted-foreground mb-3">Code: {product.code}</p>
+              <div className="p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">{product.name}</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-3">Code: {product.code}</p>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="bg-primary/20 text-primary">
+                  <Badge variant="secondary" className="bg-primary/20 text-primary text-xs sm:text-sm">
                     {product.category}
                   </Badge>
-                  <Badge variant="outline" className="border-border text-muted-foreground">
+                  <Badge variant="outline" className="border-border text-muted-foreground text-xs sm:text-sm">
                     {product.supplier}
                   </Badge>
                 </div>
@@ -209,21 +209,21 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
 
       {/* Share Response */}
       <div className="text-center">
-        <Card className="bg-white/95 backdrop-blur-md border-border inline-block">
-          <CardContent className="p-6">
+        <Card className="bg-white/95 backdrop-blur-md border-border inline-block w-full sm:w-auto">
+          <CardContent className="p-4 sm:p-6">
             {likedProducts.length > 0 ? (
-              <p className="text-foreground mb-4">
+              <p className="text-sm sm:text-base text-foreground mb-4">
                 You've liked {likedProducts.length} product{likedProducts.length > 1 ? 's' : ''}
               </p>
             ) : (
-              <p className="text-muted-foreground mb-4">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">
                 Select products you're interested in by clicking the heart icon
               </p>
             )}
             <Button 
               onClick={shareResponse} 
               disabled={isSubmitting || !customerName.trim()}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
             >
               <Share2 className="mr-2 h-4 w-4" />
               {isSubmitting ? 'Sharing...' : 'Share Your Preferences'}

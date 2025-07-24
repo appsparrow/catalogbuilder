@@ -101,4 +101,23 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 640px) {
+    /* Prevent horizontal scrolling */
+    html, body {
+      overflow-x: hidden;
+    }
+    
+    /* Improve touch targets */
+    button, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Better text readability on mobile */
+    p, span, div {
+      -webkit-text-size-adjust: 100%;
+    }
+  }
 }

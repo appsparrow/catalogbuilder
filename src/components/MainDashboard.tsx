@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Package, FileText, ArrowLeft, Settings } from "lucide-react";
+import React from "react";
 
 interface UploadedImage {
   id: string;
@@ -26,7 +27,12 @@ interface UploadedImage {
 
 type ViewState = 'upload' | 'products' | 'create-catalog' | 'management';
 
-export const MainDashboard = () => {
+interface MainDashboardProps {
+  activeView?: 'main' | 'products' | 'catalogs';
+  onViewChange?: (view: 'main' | 'products' | 'catalogs') => void;
+}
+
+export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) => {
   const [currentView, setCurrentView] = useState<ViewState>('upload');
   const [editingImage, setEditingImage] = useState<UploadedImage | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
@@ -34,6 +40,30 @@ export const MainDashboard = () => {
   const { products, addProduct, uploadImage } = useProducts();
   const { catalogs, createCatalog, refetch: refetchCatalogs } = useCatalogs();
   const { toast } = useToast();
+
+  // Sync with header menu
+  React.useEffect(() => {
+    if (activeView === 'products') {
+      setCurrentView('products');
+    } else if (activeView === 'catalogs') {
+      setCurrentView('management');
+    } else if (activeView === 'main') {
+      setCurrentView('upload');
+    }
+  }, [activeView]);
+
+  // Sync back to header menu
+  React.useEffect(() => {
+    if (onViewChange) {
+      if (currentView === 'products') {
+        onViewChange('products');
+      } else if (currentView === 'management') {
+        onViewChange('catalogs');
+      } else if (currentView === 'upload' || currentView === 'create-catalog') {
+        onViewChange('main');
+      }
+    }
+  }, [currentView, onViewChange]);
 
   const handleImageEdit = (image: UploadedImage) => {
     setEditingImage(image);
@@ -104,47 +134,51 @@ export const MainDashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-mixed bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-mixed bg-clip-text text-transparent">
                 Product Catalog Builder
               </h1>
-              <p className="text-muted-foreground">Upload products and create custom catalogs</p>
+              <p className="text-sm sm:text-base text-muted-foreground">Upload products and create custom catalogs</p>
             </div>
             
             {/* Progress Indicator */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+            <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-2 sm:pb-0">
+              <div className="flex items-center gap-1 sm:gap-2 min-w-max">
+                <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
                   currentView === 'upload' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                 }`}>
-                  <Upload className="h-4 w-4" />
-                  <span className="text-sm font-medium">1. Upload</span>
+                  <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-medium hidden sm:inline">1. Upload</span>
+                  <span className="font-medium sm:hidden">Upload</span>
                 </div>
-                <div className="w-8 h-px bg-border" />
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                <div className="w-4 sm:w-8 h-px bg-border" />
+                <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
                   currentView === 'products' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                 }`}>
-                  <Package className="h-4 w-4" />
-                  <span className="text-sm font-medium">2. Products</span>
+                  <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-medium hidden sm:inline">2. Products</span>
+                  <span className="font-medium sm:hidden">Products</span>
                   {products.length > 0 && (
-                    <Badge variant="secondary" className="ml-1">{products.length}</Badge>
+                    <Badge variant="secondary" className="ml-1 text-xs">{products.length}</Badge>
                   )}
                 </div>
-                <div className="w-8 h-px bg-border" />
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                <div className="w-4 sm:w-8 h-px bg-border" />
+                <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
                   currentView === 'create-catalog' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                 }`}>
-                  <FileText className="h-4 w-4" />
-                  <span className="text-sm font-medium">3. Catalog</span>
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-medium hidden sm:inline">3. Catalog</span>
+                  <span className="font-medium sm:hidden">Catalog</span>
                 </div>
-                <div className="w-8 h-px bg-border" />
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                <div className="w-4 sm:w-8 h-px bg-border" />
+                <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
                   currentView === 'management' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                 }`}>
-                  <Settings className="h-4 w-4" />
-                  <span className="text-sm font-medium">4. Management</span>
+                  <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-medium hidden sm:inline">4. Management</span>
+                  <span className="font-medium sm:hidden">Manage</span>
                 </div>
               </div>
             </div>
@@ -153,8 +187,8 @@ export const MainDashboard = () => {
       </header>
 
       {/* Navigation */}
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           {currentView !== 'upload' && (
             <Button
               variant="outline"
@@ -168,45 +202,52 @@ export const MainDashboard = () => {
                   setCurrentView('upload');
                 }
               }}
+              className="w-full sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
           )}
           
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant={currentView === 'upload' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setCurrentView('upload')}
+              className="w-full sm:w-auto"
             >
               <Upload className="h-4 w-4 mr-2" />
-              Upload Images
+              <span className="hidden sm:inline">Upload Images</span>
+              <span className="sm:hidden">Upload</span>
             </Button>
             <Button
               variant={currentView === 'products' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setCurrentView('products')}
               disabled={products.length === 0}
+              className="w-full sm:w-auto"
             >
               <Package className="h-4 w-4 mr-2" />
-              Products Library ({products.length})
+              <span className="hidden sm:inline">Products Library ({products.length})</span>
+              <span className="sm:hidden">Products ({products.length})</span>
             </Button>
             <Button
               variant={currentView === 'management' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setCurrentView('management')}
               disabled={catalogs.length === 0}
+              className="w-full sm:w-auto"
             >
               <Settings className="h-4 w-4 mr-2" />
-              Catalog Management ({catalogs.length})
+              <span className="hidden sm:inline">Catalog Management ({catalogs.length})</span>
+              <span className="sm:hidden">Manage ({catalogs.length})</span>
             </Button>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 pb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-8 sm:pb-12">
         {currentView === 'upload' && (
           <BulkImageUpload
             onImagesProcessed={handleImagesProcessed}

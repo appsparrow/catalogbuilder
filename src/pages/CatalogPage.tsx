@@ -40,11 +40,11 @@ const CatalogPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-foreground">Loading catalog...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-sm">
+          <CardContent className="p-6 sm:p-8 text-center">
+            <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin mx-auto mb-4" />
+            <p className="text-sm sm:text-base text-foreground">Loading catalog...</p>
           </CardContent>
         </Card>
       </div>
@@ -53,11 +53,11 @@ const CatalogPage = () => {
 
   if (error || !catalog) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-2">Catalog Not Found</h1>
-            <p className="text-muted-foreground">The catalog you're looking for doesn't exist or has been removed.</p>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-sm">
+          <CardContent className="p-6 sm:p-8 text-center">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Catalog Not Found</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">The catalog you're looking for doesn't exist or has been removed.</p>
           </CardContent>
         </Card>
       </div>
