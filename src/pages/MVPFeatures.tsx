@@ -280,7 +280,7 @@ const MVPFeatures = () => {
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-blue-600">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-purple-600 hover:bg-white hover:text-blue-600">
                   Schedule a Demo
                 </Button>
               </div>
