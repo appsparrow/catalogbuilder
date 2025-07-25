@@ -11,17 +11,16 @@ import {
   Package, 
   FileText, 
   ArrowRight, 
-  Filter, 
   Grid3X3, 
   List, 
   Edit, 
   Eye, 
   EyeOff,
   MoreVertical,
-  Trash2,
   Upload
 } from "lucide-react";
 import { Product } from "@/types/catalog";
+import { EditProductModal } from "./EditProductModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +34,7 @@ interface ProductsLibraryProps {
   onProductSelect: (productId: string, selected: boolean) => void;
   onCreateCatalog: () => void;
   onProductToggleStatus?: (productId: string, isActive: boolean) => void;
+  onEditProduct?: (productId: string, updates: Partial<Product>) => Promise<Product>;
 }
 
 type ViewMode = 'grid' | 'list';
@@ -44,11 +44,13 @@ export const ProductsLibrary = ({
   selectedProducts, 
   onProductSelect, 
   onCreateCatalog,
-  onProductToggleStatus
+  onProductToggleStatus,
+  onEditProduct
 }: ProductsLibraryProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showInactive, setShowInactive] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Filter products by status
   const processedProducts = products.filter(product => 
@@ -77,9 +79,25 @@ export const ProductsLibrary = ({
     }
   };
 
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+  };
+
+  const handleSaveEdit = async (productId: string, updates: Partial<Product>) => {
+    if (onEditProduct) {
+      try {
+        await onEditProduct(productId, updates);
+        setEditingProduct(null);
+      } catch (error) {
+        console.error('❌ ProductsLibrary handleSaveEdit ERROR:', error);
+        throw error;
+      }
+    }
+  };
+
   const renderProductCard = (product: Product) => {
     const isSelected = selectedProducts.includes(product.id);
-    const isActive = product.isActive !== false; // Default to active if not specified
+    const isActive = product.isActive !== false;
 
     return (
       <Card 
@@ -107,7 +125,7 @@ export const ProductsLibrary = ({
               />
             </div>
             {isSelected && (
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+              <div className="absolute top-2 right-12 sm:top-3 sm:right-12">
                 <Badge variant="default" className="bg-primary text-xs sm:text-sm">
                   Selected
                 </Badge>
@@ -125,7 +143,17 @@ export const ProductsLibrary = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleToggleStatus(product.id, isActive)}>
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditProduct(product);
+                }}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Product
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleStatus(product.id, isActive);
+                }}>
                   {isActive ? (
                     <>
                       <EyeOff className="h-4 w-4 mr-2" />
@@ -210,7 +238,17 @@ export const ProductsLibrary = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleToggleStatus(product.id, isActive)}>
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditProduct(product);
+                  }}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Product
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleStatus(product.id, isActive);
+                  }}>
                     {isActive ? (
                       <>
                         <EyeOff className="h-4 w-4 mr-2" />
@@ -233,7 +271,7 @@ export const ProductsLibrary = ({
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
         <div>
@@ -265,18 +303,8 @@ export const ProductsLibrary = ({
           />
         </div>
 
-        {/* Filters and View Options */}
+        {/* View Options */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium">Filter by Category:</Label>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs sm:text-sm"
-            >
-              All Categories
-            </Button>
-          </div>
           <div className="flex items-center gap-2 ml-auto">
             <div className="flex items-center border rounded-md">
               <Button
@@ -308,18 +336,6 @@ export const ProductsLibrary = ({
         </div>
       </div>
 
-      {/* Unprocessed Images Note */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2">
-            <Upload className="h-4 w-4 text-blue-600" />
-            <p className="text-sm text-blue-800">
-              <strong>Unprocessed Images:</strong> Go to "Upload Images" to add details to your uploaded images before they can be used in catalogs.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Empty State */}
       {processedProducts.length === 0 && inactiveProducts.length === 0 && (
         <Card>
@@ -347,7 +363,7 @@ export const ProductsLibrary = ({
           </div>
           <div className={
             viewMode === 'grid' 
-              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6"
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6"
               : "space-y-3"
           }>
             {processedProducts.map(product => 
@@ -366,7 +382,7 @@ export const ProductsLibrary = ({
           </div>
           <div className={
             viewMode === 'grid' 
-              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6"
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6"
               : "space-y-3"
           }>
             {inactiveProducts.map(product => 
@@ -396,6 +412,14 @@ export const ProductsLibrary = ({
           </CardContent>
         </Card>
       )}
+
+      {/* Edit Product Modal */}
+      <EditProductModal
+        product={editingProduct}
+        isOpen={!!editingProduct}
+        onClose={() => setEditingProduct(null)}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };

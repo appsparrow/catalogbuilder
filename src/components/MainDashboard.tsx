@@ -8,9 +8,7 @@ import { CatalogManagement } from "./CatalogManagement";
 import { useProducts } from "@/hooks/useProducts";
 import { useCatalogs } from "@/hooks/useCatalogs";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Package, FileText, Settings } from "lucide-react";
 import React from "react";
 import { Product } from "@/types/catalog";
 
@@ -48,20 +46,20 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
     setLocalProducts(products);
   }, [products]);
 
-  // Sync with header menu - only sync when activeView changes from parent
+  // Sync with header menu
   React.useEffect(() => {
-    if (activeView === 'products' && currentView !== 'create-catalog') {
+    if (activeView === 'products') {
       setCurrentView('products');
     } else if (activeView === 'catalogs') {
       setCurrentView('management');
-    } else if (activeView === 'main' && currentView !== 'create-catalog') {
+    } else if (activeView === 'main') {
       setCurrentView('upload');
     }
   }, [activeView]);
 
-  // Sync back to header menu - but don't interfere with catalog creation flow
+  // Sync back to header menu
   React.useEffect(() => {
-    if (onViewChange && currentView !== 'create-catalog') {
+    if (onViewChange) {
       if (currentView === 'products') {
         onViewChange('products');
       } else if (currentView === 'management') {
@@ -162,118 +160,48 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Process Steps Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-center mb-2">Product Catalog Builder</h1>
-          <p className="text-muted-foreground text-center mb-6">Upload products and create custom catalogs</p>
-          
-          {/* Process Steps */}
-          <div className="flex items-center justify-center gap-8 mb-8">
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentView === 'upload' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}>
-                1
-              </div>
-              <span className={`text-sm font-medium ${
-                currentView === 'upload' ? 'text-primary' : 'text-muted-foreground'
-              }`}>
-                Upload
-              </span>
-            </div>
+      {/* Process Steps Header - Only show when in upload flow */}
+      {currentView === 'upload' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-center mb-2">Product Catalog Builder</h1>
+            <p className="text-muted-foreground text-center mb-6">Upload products and create custom catalogs</p>
             
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentView === 'products' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}>
-                2
+            {/* Process Steps */}
+            <div className="flex items-center justify-center gap-8 mb-8">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-primary text-primary-foreground">
+                  1
+                </div>
+                <span className="text-sm font-medium text-primary">Upload</span>
               </div>
-              <span className={`text-sm font-medium ${
-                currentView === 'products' ? 'text-primary' : 'text-muted-foreground'
-              }`}>
-                Products
-              </span>
-              <Badge variant="secondary" className="ml-1">{localProducts.length}</Badge>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentView === 'create-catalog' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}>
-                3
+              
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-muted text-muted-foreground">
+                  2
+                </div>
+                <span className="text-sm font-medium text-muted-foreground">Products</span>
+                <Badge variant="secondary" className="ml-1">{localProducts.length}</Badge>
               </div>
-              <span className={`text-sm font-medium ${
-                currentView === 'create-catalog' ? 'text-primary' : 'text-muted-foreground'
-              }`}>
-                Catalog
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentView === 'management' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}>
-                4
+              
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-muted text-muted-foreground">
+                  3
+                </div>
+                <span className="text-sm font-medium text-muted-foreground">Catalog</span>
               </div>
-              <span className={`text-sm font-medium ${
-                currentView === 'management' ? 'text-primary' : 'text-muted-foreground'
-              }`}>
-                Management
-              </span>
-              <Badge variant="secondary" className="ml-1">{catalogs.length}</Badge>
+              
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-muted text-muted-foreground">
+                  4
+                </div>
+                <span className="text-sm font-medium text-muted-foreground">Management</span>
+                <Badge variant="secondary" className="ml-1">{catalogs.length}</Badge>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <Button
-              variant={currentView === 'upload' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => {
-                setCurrentView('upload');
-                if (onViewChange) {
-                  onViewChange('main');
-                }
-              }}
-              className="w-full sm:w-auto"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Images
-            </Button>
-            <Button
-              variant={currentView === 'products' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => {
-                setCurrentView('products');
-                if (onViewChange) {
-                  onViewChange('products');
-                }
-              }}
-              className="w-full sm:w-auto"
-            >
-              <Package className="h-4 w-4 mr-2" />
-              Products Library ({localProducts.length})
-            </Button>
-            <Button
-              variant={currentView === 'management' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => {
-                setCurrentView('management');
-                if (onViewChange) {
-                  onViewChange('catalogs');
-                }
-              }}
-              className="w-full sm:w-auto"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Catalog Management ({catalogs.length})
-            </Button>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-8 sm:pb-12">
@@ -291,6 +219,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
             onProductSelect={handleProductSelect}
             onCreateCatalog={handleCreateCatalog}
             onProductToggleStatus={handleProductToggleStatus}
+            onEditProduct={updateProduct}
           />
         )}
 
