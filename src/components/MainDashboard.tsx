@@ -77,7 +77,6 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   };
 
   const handleSaveImageDetails = (imageId: string, details: any) => {
-    // This is handled in BulkImageUpload component
     setEditingImage(null);
   };
 
@@ -85,10 +84,8 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
     try {
       for (const image of images) {
         if (image.details) {
-          // Upload image to Supabase
           const imageUrl = await uploadImage(image.file, image.details.code);
           
-          // Create product in database
           await addProduct({
             name: image.details.name,
             code: image.details.code,
@@ -101,10 +98,8 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
         }
       }
       
-      // Navigate to products view
       setCurrentView('products');
       
-      // Sync with header menu
       if (onViewChange) {
         onViewChange('products');
       }
@@ -133,10 +128,6 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   };
 
   const handleCreateCatalog = () => {
-    console.log('🎯 Creating catalog with selected products:', selectedProducts);
-    console.log('🎯 getSelectedProductsData():', getSelectedProductsData());
-    
-    // Navigate to catalog creation - this should not trigger header sync
     setCurrentView('create-catalog');
   };
 
@@ -144,10 +135,8 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
     try {
       const result = await createCatalog(catalogData);
       
-      // After successful catalog creation, go to management view
       setCurrentView('management');
       
-      // Sync with header menu
       if (onViewChange) {
         onViewChange('catalogs');
       }
@@ -161,20 +150,9 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
 
   const handleProductToggleStatus = async (productId: string, isActive: boolean) => {
     try {
-      
-      // Update the product status in the database
-      const result = await updateProductStatus(productId, isActive);
-      
-      // Don't update local state here - it's already updated in the hook
-      // setLocalProducts(prev => prev.map(product => 
-      //   product.id === productId 
-      //     ? { ...product, isActive }
-      //     : product
-      // ));
-      
+      await updateProductStatus(productId, isActive);
     } catch (error) {
       console.error('❌ MainDashboard handleProductToggleStatus ERROR:', error);
-      // Error handling is done in the updateProductStatus function
     }
   };
 
@@ -184,9 +162,72 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+      {/* Process Steps Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-center mb-2">Product Catalog Builder</h1>
+          <p className="text-muted-foreground text-center mb-6">Upload products and create custom catalogs</p>
+          
+          {/* Process Steps */}
+          <div className="flex items-center justify-center gap-8 mb-8">
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                currentView === 'upload' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}>
+                1
+              </div>
+              <span className={`text-sm font-medium ${
+                currentView === 'upload' ? 'text-primary' : 'text-muted-foreground'
+              }`}>
+                Upload
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                currentView === 'products' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}>
+                2
+              </div>
+              <span className={`text-sm font-medium ${
+                currentView === 'products' ? 'text-primary' : 'text-muted-foreground'
+              }`}>
+                Products
+              </span>
+              <Badge variant="secondary" className="ml-1">{localProducts.length}</Badge>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                currentView === 'create-catalog' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}>
+                3
+              </div>
+              <span className={`text-sm font-medium ${
+                currentView === 'create-catalog' ? 'text-primary' : 'text-muted-foreground'
+              }`}>
+                Catalog
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                currentView === 'management' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}>
+                4
+              </div>
+              <span className={`text-sm font-medium ${
+                currentView === 'management' ? 'text-primary' : 'text-muted-foreground'
+              }`}>
+                Management
+              </span>
+              <Badge variant="secondary" className="ml-1">{catalogs.length}</Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant={currentView === 'upload' ? 'default' : 'ghost'}
@@ -200,8 +241,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
               className="w-full sm:w-auto"
             >
               <Upload className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Upload Images</span>
-              <span className="sm:hidden">Upload</span>
+              Upload Images
             </Button>
             <Button
               variant={currentView === 'products' ? 'default' : 'ghost'}
@@ -215,8 +255,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
               className="w-full sm:w-auto"
             >
               <Package className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Products Library ({localProducts.length})</span>
-              <span className="sm:hidden">Products ({localProducts.length})</span>
+              Products Library ({localProducts.length})
             </Button>
             <Button
               variant={currentView === 'management' ? 'default' : 'ghost'}
@@ -230,8 +269,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
               className="w-full sm:w-auto"
             >
               <Settings className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Catalog Management ({catalogs.length})</span>
-              <span className="sm:hidden">Manage ({catalogs.length})</span>
+              Catalog Management ({catalogs.length})
             </Button>
           </div>
         </div>
@@ -261,7 +299,6 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
             selectedProducts={getSelectedProductsData()}
             onBack={() => {
               setCurrentView('products');
-              // Sync with header menu
               if (onViewChange) {
                 onViewChange('products');
               }

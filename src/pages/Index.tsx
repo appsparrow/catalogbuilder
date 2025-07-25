@@ -2,7 +2,7 @@
 import { MainDashboard } from "@/components/MainDashboard";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Package, Settings } from "lucide-react";
+import { Package, Settings, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -30,14 +30,15 @@ const Index = () => {
                 variant={activeView === 'main' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setActiveView('main')}
-                className="hidden sm:flex items-center gap-2"
+                className="flex items-center gap-1 sm:gap-2"
               >
-                <span>Dashboard</span>
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Upload Images</span>
+                <span className="sm:hidden">Upload</span>
               </Button>
               <Button
                 variant={activeView === 'products' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setActiveView('products')}
                 className="flex items-center gap-1 sm:gap-2"
               >
                 <Package className="h-4 w-4" />
@@ -47,12 +48,11 @@ const Index = () => {
               <Button
                 variant={activeView === 'catalogs' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setActiveView('catalogs')}
                 className="flex items-center gap-1 sm:gap-2"
               >
                 <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Catalogs (Manage)</span>
-                <span className="sm:hidden">Manage</span>
+                <span className="hidden sm:inline">Catalogs</span>
+                <span className="sm:hidden">Catalogs</span>
               </Button>
             </div>
           </div>
