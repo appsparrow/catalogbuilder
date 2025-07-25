@@ -41,25 +41,25 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   const { catalogs, createCatalog, refetch: refetchCatalogs } = useCatalogs();
   const { toast } = useToast();
 
-  // Sync with header menu
+  // Sync with header menu - only sync when activeView changes from parent
   React.useEffect(() => {
-    if (activeView === 'products') {
+    if (activeView === 'products' && currentView !== 'create-catalog') {
       setCurrentView('products');
     } else if (activeView === 'catalogs') {
       setCurrentView('management');
-    } else if (activeView === 'main') {
+    } else if (activeView === 'main' && currentView !== 'create-catalog') {
       setCurrentView('upload');
     }
   }, [activeView]);
 
-  // Sync back to header menu
+  // Sync back to header menu - but don't interfere with catalog creation flow
   React.useEffect(() => {
-    if (onViewChange) {
+    if (onViewChange && currentView !== 'create-catalog') {
       if (currentView === 'products') {
         onViewChange('products');
       } else if (currentView === 'management') {
         onViewChange('catalogs');
-      } else if (currentView === 'upload' || currentView === 'create-catalog') {
+      } else if (currentView === 'upload') {
         onViewChange('main');
       }
     }
@@ -119,11 +119,15 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   };
 
   const handleCreateCatalog = () => {
+    console.log('Creating catalog with selected products:', selectedProducts);
     setCurrentView('create-catalog');
   };
 
   const handleCatalogCreate = async (catalogData: any) => {
-    return await createCatalog(catalogData);
+    const result = await createCatalog(catalogData);
+    // After successful catalog creation, go to management view
+    setCurrentView('management');
+    return result;
   };
 
   const getSelectedProductsData = () => {
@@ -137,7 +141,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-mixed bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
                 Product Catalog Builder
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground">Upload products and create custom catalogs</p>
