@@ -167,13 +167,13 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
             <h1 className="text-2xl font-bold text-center mb-2">Product Catalog Builder</h1>
             <p className="text-muted-foreground text-center mb-6">Upload products and create custom catalogs</p>
             
-            {/* Process Steps */}
-            <div className="flex items-center justify-center gap-8 mb-8">
+            {/* Process Steps - Mobile Responsive */}
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 mb-8">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-primary text-primary-foreground">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-gradient-mixed text-white shadow-lg">
                   1
                 </div>
-                <span className="text-sm font-medium text-primary">Upload</span>
+                <span className="text-sm font-medium bg-gradient-mixed bg-clip-text text-transparent">Upload</span>
               </div>
               
               <div className="flex items-center gap-2">
