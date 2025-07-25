@@ -10,7 +10,7 @@ import { useCatalogs } from "@/hooks/useCatalogs";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Package, FileText } from "lucide-react";
+import { Upload, Package, FileText, Settings } from "lucide-react";
 import React from "react";
 import { Product } from "@/types/catalog";
 
@@ -184,52 +184,6 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-mixed bg-clip-text text-transparent">
-                Product Catalog Builder
-              </h1>
-              <p className="text-sm sm:text-base text-muted-foreground">Upload products and create custom catalogs</p>
-            </div>
-            
-            {/* Progress Indicator */}
-            <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-2 sm:pb-0">
-              <div className="flex items-center gap-1 sm:gap-2 min-w-max">
-                <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
-                  currentView === 'upload' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                }`}>
-                  <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="font-medium hidden sm:inline">1. Upload</span>
-                  <span className="font-medium sm:hidden">Upload</span>
-                </div>
-                <div className="w-4 sm:w-8 h-px bg-border" />
-                <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
-                  currentView === 'products' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                }`}>
-                  <Package className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="font-medium hidden sm:inline">2. Products</span>
-                  <span className="font-medium sm:hidden">Products</span>
-                  {localProducts.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 text-xs">{localProducts.length}</Badge>
-                  )}
-                </div>
-                <div className="w-4 sm:w-8 h-px bg-border" />
-                <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
-                  currentView === 'create-catalog' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                }`}>
-                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="font-medium hidden sm:inline">3. Catalog</span>
-                  <span className="font-medium sm:hidden">Catalog</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -258,12 +212,26 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
                   onViewChange('products');
                 }
               }}
-              disabled={localProducts.length === 0}
               className="w-full sm:w-auto"
             >
               <Package className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Products Library ({localProducts.length})</span>
               <span className="sm:hidden">Products ({localProducts.length})</span>
+            </Button>
+            <Button
+              variant={currentView === 'management' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => {
+                setCurrentView('management');
+                if (onViewChange) {
+                  onViewChange('catalogs');
+                }
+              }}
+              className="w-full sm:w-auto"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Catalog Management ({catalogs.length})</span>
+              <span className="sm:hidden">Manage ({catalogs.length})</span>
             </Button>
           </div>
         </div>

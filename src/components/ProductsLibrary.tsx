@@ -28,20 +28,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface ProductsLibraryProps {
   products: Product[];
@@ -124,13 +110,6 @@ export const ProductsLibrary = ({
               <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
                 <Badge variant="default" className="bg-primary text-xs sm:text-sm">
                   Selected
-                </Badge>
-              </div>
-            )}
-            {!isActive && (
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                <Badge variant="secondary" className="text-xs sm:text-sm">
-                  Inactive
                 </Badge>
               </div>
             )}
@@ -290,16 +269,13 @@ export const ProductsLibrary = ({
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
             <Label className="text-sm font-medium">Filter by Category:</Label>
-            <div className="flex flex-wrap gap-2">
-              {/* Categories are not managed in this component, so this list is static */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs sm:text-sm"
-              >
-                All Categories
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
+            >
+              All Categories
+            </Button>
           </div>
           <div className="flex items-center gap-2 ml-auto">
             <div className="flex items-center border rounded-md">
