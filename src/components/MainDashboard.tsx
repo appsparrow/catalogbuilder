@@ -10,8 +10,9 @@ import { useCatalogs } from "@/hooks/useCatalogs";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Package, FileText, ArrowLeft, Settings } from "lucide-react";
+import { Upload, Package, FileText } from "lucide-react";
 import React from "react";
+import { Product } from "@/types/catalog";
 
 interface UploadedImage {
   id: string;
@@ -36,30 +37,36 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   const [currentView, setCurrentView] = useState<ViewState>('upload');
   const [editingImage, setEditingImage] = useState<UploadedImage | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [localProducts, setLocalProducts] = useState<Product[]>([]);
   
-  const { products, addProduct, uploadImage } = useProducts();
+  const { products, addProduct, uploadImage, updateProduct, updateProductStatus } = useProducts();
   const { catalogs, createCatalog, refetch: refetchCatalogs } = useCatalogs();
   const { toast } = useToast();
 
-  // Sync with header menu
+  // Sync products from hook to local state
   React.useEffect(() => {
-    if (activeView === 'products') {
+    setLocalProducts(products);
+  }, [products]);
+
+  // Sync with header menu - only sync when activeView changes from parent
+  React.useEffect(() => {
+    if (activeView === 'products' && currentView !== 'create-catalog') {
       setCurrentView('products');
     } else if (activeView === 'catalogs') {
       setCurrentView('management');
-    } else if (activeView === 'main') {
+    } else if (activeView === 'main' && currentView !== 'create-catalog') {
       setCurrentView('upload');
     }
   }, [activeView]);
 
-  // Sync back to header menu
+  // Sync back to header menu - but don't interfere with catalog creation flow
   React.useEffect(() => {
-    if (onViewChange) {
+    if (onViewChange && currentView !== 'create-catalog') {
       if (currentView === 'products') {
         onViewChange('products');
       } else if (currentView === 'management') {
         onViewChange('catalogs');
-      } else if (currentView === 'upload' || currentView === 'create-catalog') {
+      } else if (currentView === 'upload') {
         onViewChange('main');
       }
     }
@@ -88,12 +95,19 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
             category: image.details.category,
             supplier: image.details.supplier,
             image_url: imageUrl,
-            original_image_url: imageUrl
+            original_image_url: imageUrl,
+            isActive: true
           });
         }
       }
       
+      // Navigate to products view
       setCurrentView('products');
+      
+      // Sync with header menu
+      if (onViewChange) {
+        onViewChange('products');
+      }
       
       toast({
         title: "Products created!",
@@ -119,15 +133,53 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   };
 
   const handleCreateCatalog = () => {
+    console.log('🎯 Creating catalog with selected products:', selectedProducts);
+    console.log('🎯 getSelectedProductsData():', getSelectedProductsData());
+    
+    // Navigate to catalog creation - this should not trigger header sync
     setCurrentView('create-catalog');
   };
 
   const handleCatalogCreate = async (catalogData: any) => {
-    return await createCatalog(catalogData);
+    try {
+      const result = await createCatalog(catalogData);
+      
+      // After successful catalog creation, go to management view
+      setCurrentView('management');
+      
+      // Sync with header menu
+      if (onViewChange) {
+        onViewChange('catalogs');
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error creating catalog:', error);
+      throw error;
+    }
+  };
+
+  const handleProductToggleStatus = async (productId: string, isActive: boolean) => {
+    try {
+      
+      // Update the product status in the database
+      const result = await updateProductStatus(productId, isActive);
+      
+      // Don't update local state here - it's already updated in the hook
+      // setLocalProducts(prev => prev.map(product => 
+      //   product.id === productId 
+      //     ? { ...product, isActive }
+      //     : product
+      // ));
+      
+    } catch (error) {
+      console.error('❌ MainDashboard handleProductToggleStatus ERROR:', error);
+      // Error handling is done in the updateProductStatus function
+    }
   };
 
   const getSelectedProductsData = () => {
-    return products.filter(p => selectedProducts.includes(p.id));
+    return localProducts.filter(p => selectedProducts.includes(p.id));
   };
 
   return (
@@ -160,8 +212,8 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
                   <Package className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="font-medium hidden sm:inline">2. Products</span>
                   <span className="font-medium sm:hidden">Products</span>
-                  {products.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 text-xs">{products.length}</Badge>
+                  {localProducts.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">{localProducts.length}</Badge>
                   )}
                 </div>
                 <div className="w-4 sm:w-8 h-px bg-border" />
@@ -172,14 +224,6 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
                   <span className="font-medium hidden sm:inline">3. Catalog</span>
                   <span className="font-medium sm:hidden">Catalog</span>
                 </div>
-                <div className="w-4 sm:w-8 h-px bg-border" />
-                <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
-                  currentView === 'management' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                }`}>
-                  <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="font-medium hidden sm:inline">4. Management</span>
-                  <span className="font-medium sm:hidden">Manage</span>
-                </div>
               </div>
             </div>
           </div>
@@ -189,31 +233,16 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
       {/* Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-          {currentView !== 'upload' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (currentView === 'management') {
-                  setCurrentView('products');
-                } else if (currentView === 'create-catalog') {
-                  setCurrentView('products');
-                } else {
-                  setCurrentView('upload');
-                }
-              }}
-              className="w-full sm:w-auto"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          )}
-          
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant={currentView === 'upload' ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => setCurrentView('upload')}
+              onClick={() => {
+                setCurrentView('upload');
+                if (onViewChange) {
+                  onViewChange('main');
+                }
+              }}
               className="w-full sm:w-auto"
             >
               <Upload className="h-4 w-4 mr-2" />
@@ -223,24 +252,18 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
             <Button
               variant={currentView === 'products' ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => setCurrentView('products')}
-              disabled={products.length === 0}
+              onClick={() => {
+                setCurrentView('products');
+                if (onViewChange) {
+                  onViewChange('products');
+                }
+              }}
+              disabled={localProducts.length === 0}
               className="w-full sm:w-auto"
             >
               <Package className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Products Library ({products.length})</span>
-              <span className="sm:hidden">Products ({products.length})</span>
-            </Button>
-            <Button
-              variant={currentView === 'management' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setCurrentView('management')}
-              disabled={catalogs.length === 0}
-              className="w-full sm:w-auto"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Catalog Management ({catalogs.length})</span>
-              <span className="sm:hidden">Manage ({catalogs.length})</span>
+              <span className="hidden sm:inline">Products Library ({localProducts.length})</span>
+              <span className="sm:hidden">Products ({localProducts.length})</span>
             </Button>
           </div>
         </div>
@@ -257,17 +280,24 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
 
         {currentView === 'products' && (
           <ProductsLibrary
-            products={products}
+            products={localProducts}
             selectedProducts={selectedProducts}
             onProductSelect={handleProductSelect}
             onCreateCatalog={handleCreateCatalog}
+            onProductToggleStatus={handleProductToggleStatus}
           />
         )}
 
         {currentView === 'create-catalog' && (
           <CatalogCreator
             selectedProducts={getSelectedProductsData()}
-            onBack={() => setCurrentView('products')}
+            onBack={() => {
+              setCurrentView('products');
+              // Sync with header menu
+              if (onViewChange) {
+                onViewChange('products');
+              }
+            }}
             onCatalogCreate={handleCatalogCreate}
           />
         )}

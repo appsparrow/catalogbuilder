@@ -7,6 +7,7 @@ export interface Product {
   image_url: string;
   original_image_url?: string;
   created_at: string;
+  isActive?: boolean;
 }
 
 export interface Catalog {

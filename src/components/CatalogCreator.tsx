@@ -21,6 +21,8 @@ interface CatalogCreatorProps {
 }
 
 export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: CatalogCreatorProps) => {
+  console.log('📋 CatalogCreator rendered with selectedProducts:', selectedProducts);
+  
   const [catalogName, setCatalogName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -67,11 +69,16 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
     }
   };
 
+  const handleBack = () => {
+    console.log('📋 CatalogCreator: Navigating back to products');
+    onBack();
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={onBack}>
+        <Button variant="outline" size="icon" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
