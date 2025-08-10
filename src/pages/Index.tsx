@@ -26,8 +26,8 @@ export default function Index() {
             {/* Logo and Title */}
             <div className="flex items-center gap-3">
               <img
-                src="/lovable-uploads/8da89774-f24d-402e-bc80-8eace211ae34.png"
-                alt="Cuzata logo"
+                src="/lovable-uploads/6487a356-5d35-4050-a2ff-c0bb013f6c1c.png"
+                alt="Cuzzata logo"
                 className="h-10 w-10 rounded-md object-contain"
                 loading="lazy"
               />
@@ -47,7 +47,7 @@ export default function Index() {
                     : 'hover:bg-accent'
                 }`}
               >
-                Upload Images
+                Upload Products
               </Button>
               <Button
                 onClick={() => handleViewChange('products')}
@@ -97,7 +97,7 @@ export default function Index() {
                       : 'hover:bg-accent'
                   }`}
                 >
-                  Upload Images
+                  Upload Products
                 </Button>
                 <Button
                   onClick={() => handleViewChange('products')}

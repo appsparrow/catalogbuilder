@@ -37,7 +37,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
   
-  const { products, addProduct, uploadImage, updateProduct, updateProductStatus } = useProducts();
+  const { products, addProduct, uploadImage, updateProduct, updateProductStatus, refetch } = useProducts();
   const { catalogs, createCatalog, refetch: refetchCatalogs } = useCatalogs();
   const { toast } = useToast();
 
@@ -96,10 +96,13 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
         }
       }
       
-      setCurrentView('products');
+      // Refresh products count
+      await refetch();
       
+      // Stay on the upload view so unprocessed items remain visible
+      setCurrentView('upload');
       if (onViewChange) {
-        onViewChange('products');
+        onViewChange('main');
       }
       
       toast({
