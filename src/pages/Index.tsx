@@ -1,112 +1,134 @@
 
-import { MainDashboard } from "@/components/MainDashboard";
 import { useState } from "react";
+import { MainDashboard } from "@/components/MainDashboard";
 import { Button } from "@/components/ui/button";
-import { Package, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 
-const Index = () => {
+export default function Index() {
   const [activeView, setActiveView] = useState<'main' | 'products' | 'catalogs'>('main');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleViewChange = (view: 'main' | 'products' | 'catalogs') => {
+    setActiveView(view);
+    setIsMobileMenuOpen(false); // Close mobile menu when item is selected
+  };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <img 
-                src="/lovable-uploads/ad9485b6-d796-4b14-a5b2-0701ba070683.png" 
-                alt="CUZATA Logo" 
-                className="h-6 w-6 sm:h-8 sm:w-8"
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo and Title */}
+            <div className="flex items-center gap-3">
+              <img
+                src="/lovable-uploads/6487a356-5d35-4050-a2ff-c0bb013f6c1c.png"
+                alt="Cuzzata logo"
+                className="h-10 w-10 rounded-md object-contain"
+                loading="lazy"
               />
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-mixed bg-clip-text text-transparent">
-                CUZATA
+              <h1 className="text-xl font-bold bg-gradient-mixed bg-clip-text text-transparent">
+                Cuzata
               </h1>
             </div>
-            
-            {/* Header Menu */}
-            <div className="flex items-center gap-2 sm:gap-4">
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-4">
               <Button
+                onClick={() => handleViewChange('main')}
                 variant={activeView === 'main' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveView('main')}
-                className="hidden sm:flex items-center gap-2"
+                className={`transition-all duration-200 ${
+                  activeView === 'main' 
+                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                    : 'hover:bg-accent'
+                }`}
               >
-                <span>Dashboard</span>
+                Upload Products
               </Button>
               <Button
+                onClick={() => handleViewChange('products')}
                 variant={activeView === 'products' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveView('products')}
-                className="flex items-center gap-1 sm:gap-2"
+                className={`transition-all duration-200 ${
+                  activeView === 'products' 
+                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                    : 'hover:bg-accent'
+                }`}
               >
-                <Package className="h-4 w-4" />
-                <span className="hidden sm:inline">Products</span>
-                <span className="sm:hidden">Products</span>
+                Products
               </Button>
               <Button
+                onClick={() => handleViewChange('catalogs')}
                 variant={activeView === 'catalogs' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveView('catalogs')}
-                className="flex items-center gap-1 sm:gap-2"
+                className={`transition-all duration-200 ${
+                  activeView === 'catalogs' 
+                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                    : 'hover:bg-accent'
+                }`}
               >
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Catalogs (Manage)</span>
-                <span className="sm:hidden">Manage</span>
+                Catalogs
               </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
+            </nav>
 
-      <main className="flex-1">
-        <MainDashboard activeView={activeView} onViewChange={setActiveView} />
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-6 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <p className="text-sm">
-                <a 
-                  href="https://lovable.dev/invite/7ea3252a-98b9-4671-ba20-2292bced6e46" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 hover:text-white transition-colors"
-                >
-                  <img 
-                    src="/lovable-uploads/ad9485b6-d796-4b14-a5b2-0701ba070683.png" 
-                    alt="Lovable" 
-                    className="h-4 w-4 rounded"
-                  />
-                  Lovable app
-                </a>{" "}
-                built by human at{" "}
-                <span className="text-white font-medium">Cuzata</span> for{" "}
-                <a 
-                  href="https://illus.in" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-white font-medium hover:underline"
-                >
-                  Illus Decor
-                </a>
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link to="/features" className="text-sm hover:text-white transition-colors">
-                MVP Features
-              </Link>
-              <p className="text-xs opacity-75">
-                © 2024 Cuzata. All rights reserved.
-              </p>
-            </div>
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={toggleMobileMenu}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </Button>
           </div>
+
+          {/* Mobile Navigation */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t bg-white/95 backdrop-blur-sm">
+              <nav className="flex flex-col gap-2 p-4">
+                <Button
+                  onClick={() => handleViewChange('main')}
+                  variant={activeView === 'main' ? 'default' : 'ghost'}
+                  className={`w-full justify-start transition-all duration-200 ${
+                    activeView === 'main' 
+                      ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                      : 'hover:bg-accent'
+                  }`}
+                >
+                  Upload Products
+                </Button>
+                <Button
+                  onClick={() => handleViewChange('products')}
+                  variant={activeView === 'products' ? 'default' : 'ghost'}
+                  className={`w-full justify-start transition-all duration-200 ${
+                    activeView === 'products' 
+                      ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                      : 'hover:bg-accent'
+                  }`}
+                >
+                  Products
+                </Button>
+                <Button
+                  onClick={() => handleViewChange('catalogs')}
+                  variant={activeView === 'catalogs' ? 'default' : 'ghost'}
+                  className={`w-full justify-start transition-all duration-200 ${
+                    activeView === 'catalogs' 
+                      ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                      : 'hover:bg-accent'
+                  }`}
+                >
+                  Catalogs
+                </Button>
+              </nav>
+            </div>
+          )}
         </div>
-      </footer>
+      </header>
+
+      {/* Main Content */}
+      <MainDashboard activeView={activeView} onViewChange={setActiveView} />
     </div>
   );
-};
-
-export default Index;
+}
