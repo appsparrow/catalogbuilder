@@ -10,22 +10,13 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   build: {
-    // Ensure build works across different platforms
     target: 'esnext',
     rollupOptions: {
-      // Handle external dependencies better
       external: [],
       output: {
-        // Ensure consistent output
         manualChunks: undefined,
       },
-      // Explicitly exclude problematic plugins
-      plugins: [],
     },
-    // Disable source maps in production to avoid issues
-    sourcemap: false,
-    // Ensure clean output
-    emptyOutDir: true,
   },
   plugins: [
     react(),
@@ -37,9 +28,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Ensure Vite handles platform differences gracefully
   optimizeDeps: {
-    exclude: ['@rollup/rollup-linux-x64-gnu', 'rollup'],
-    include: ['react', 'react-dom'],
+    exclude: ['@rollup/rollup-linux-x64-gnu'],
   },
 }));
