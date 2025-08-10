@@ -1,14 +1,15 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Upload, X, Edit, Check, ArrowRight } from "lucide-react";
+import { useUnprocessedProducts, UnprocessedProduct } from "@/hooks/useUnprocessedProducts";
 
 interface UploadedImage {
   id: string;
-  file: File;
+  file?: File;
   preview: string;
   details?: {
     name: string;
@@ -18,6 +19,7 @@ interface UploadedImage {
   };
   status?: 'pending' | 'processing' | 'success' | 'error';
   error?: string;
+  unprocessedId?: string; // Link to database record
 }
 
 interface BulkImageUploadProps {
@@ -28,17 +30,53 @@ interface BulkImageUploadProps {
 export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUploadProps) => {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { 
+    unprocessedProducts, 
+    addUnprocessedProduct, 
+    updateUnprocessedProduct, 
+    removeUnprocessedProduct, 
+    uploadUnprocessedImage,
+    loading 
+  } = useUnprocessedProducts();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newImages = acceptedFiles.map(file => ({
-      id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      file,
-      preview: URL.createObjectURL(file),
-      status: 'pending' as const
+  // Sync unprocessed products from database to local state
+  useEffect(() => {
+    const images: UploadedImage[] = unprocessedProducts.map(product => ({
+      id: product.id,
+      unprocessedId: product.id,
+      preview: product.image_url,
+      status: 'pending' as const,
+      details: (product.name && product.code && product.category && product.supplier) ? {
+        name: product.name,
+        code: product.code,
+        category: product.category,
+        supplier: product.supplier
+      } : undefined
     }));
     
-    setUploadedImages(prev => [...prev, ...newImages]);
-  }, []);
+    setUploadedImages(images);
+  }, [unprocessedProducts]);
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const uploadPromises = acceptedFiles.map(async (file) => {
+      try {
+        // Upload to storage and save to database
+        const imageUrl = await uploadUnprocessedImage(file);
+        await addUnprocessedProduct({
+          image_url: imageUrl,
+          original_image_url: imageUrl
+        });
+        
+        // Note: The useEffect above will automatically update the local state
+        // when unprocessedProducts changes
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        // Could add error handling here
+      }
+    });
+    
+    await Promise.all(uploadPromises);
+  }, [uploadUnprocessedImage, addUnprocessedProduct]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -48,8 +86,12 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
     multiple: true
   });
 
-  const removeImage = (imageId: string) => {
-    setUploadedImages(prev => prev.filter(img => img.id !== imageId));
+  const removeImage = async (imageId: string) => {
+    const image = uploadedImages.find(img => img.id === imageId);
+    if (image?.unprocessedId) {
+      await removeUnprocessedProduct(image.unprocessedId);
+    }
+    // The useEffect will automatically update local state when unprocessedProducts changes
   };
 
   const resetProcessedImages = () => {
@@ -69,10 +111,22 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
       try {
         await onImagesProcessed(imagesWithDetails);
         
-        // Mark successful images
+        // Mark successful images and remove from unprocessed products
+        const successfulImages = imagesWithDetails;
         setUploadedImages(prev => prev.map(img => 
           img.details ? { ...img, status: 'success' as const } : img
         ));
+
+        // Remove successfully processed images from unprocessed products table
+        for (const image of successfulImages) {
+          if (image.unprocessedId) {
+            try {
+              await removeUnprocessedProduct(image.unprocessedId);
+            } catch (error) {
+              console.error('Error removing processed image from unprocessed products:', error);
+            }
+          }
+        }
       } catch (error) {
         // Mark failed images
         setUploadedImages(prev => prev.map(img => 
@@ -105,7 +159,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
           >
             <input {...getInputProps()} />
             <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-semibold mb-2">Upload Product Images</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-2">Upload Products</h3>
             <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
               {isDragActive
                 ? "Drop the images here..."
@@ -354,11 +408,18 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
         </div>
       )}
 
-      {uploadedImages.length === 0 && (
+      {uploadedImages.length === 0 && !loading && (
         <div className="text-center py-8 sm:py-12">
           <Upload className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground/50 mb-3 sm:mb-4" />
-          <h3 className="text-base sm:text-lg font-semibold text-muted-foreground">No images uploaded yet</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-muted-foreground">No products uploaded yet</h3>
           <p className="text-sm sm:text-base text-muted-foreground">Start by uploading some product images above</p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="text-center py-8 sm:py-12">
+          <div className="animate-spin h-8 w-8 mx-auto mb-4">⏳</div>
+          <h3 className="text-base sm:text-lg font-semibold text-muted-foreground">Loading products...</h3>
         </div>
       )}
     </div>

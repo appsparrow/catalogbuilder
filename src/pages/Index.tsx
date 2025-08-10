@@ -26,12 +26,12 @@ export default function Index() {
             {/* Logo and Title */}
             <div className="flex items-center gap-3">
               <img
-                src="/lovable-uploads/6487a356-5d35-4050-a2ff-c0bb013f6c1c.png"
+                src="./logo.png"
                 alt="Cuzzata logo"
                 className="h-10 w-10 rounded-md object-contain"
                 loading="lazy"
               />
-              <h1 className="text-xl font-bold bg-gradient-mixed bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold text-foreground">
                 Cuzata
               </h1>
             </div>
@@ -43,7 +43,7 @@ export default function Index() {
                 variant={activeView === 'main' ? 'default' : 'ghost'}
                 className={`transition-all duration-200 ${
                   activeView === 'main' 
-                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-foreground shadow-lg' 
                     : 'hover:bg-accent'
                 }`}
               >
@@ -54,7 +54,7 @@ export default function Index() {
                 variant={activeView === 'products' ? 'default' : 'ghost'}
                 className={`transition-all duration-200 ${
                   activeView === 'products' 
-                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-foreground shadow-lg' 
                     : 'hover:bg-accent'
                 }`}
               >
@@ -65,7 +65,7 @@ export default function Index() {
                 variant={activeView === 'catalogs' ? 'default' : 'ghost'}
                 className={`transition-all duration-200 ${
                   activeView === 'catalogs' 
-                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-white shadow-lg' 
+                    ? 'bg-gradient-mixed hover:bg-gradient-mixed text-foreground shadow-lg' 
                     : 'hover:bg-accent'
                 }`}
               >

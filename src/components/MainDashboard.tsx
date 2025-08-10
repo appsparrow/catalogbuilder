@@ -7,6 +7,7 @@ import { CatalogCreator } from "./CatalogCreator";
 import { CatalogManagement } from "./CatalogManagement";
 import { useProducts } from "@/hooks/useProducts";
 import { useCatalogs } from "@/hooks/useCatalogs";
+import { useUnprocessedProducts } from "@/hooks/useUnprocessedProducts";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import React from "react";
@@ -14,7 +15,7 @@ import { Product } from "@/types/catalog";
 
 interface UploadedImage {
   id: string;
-  file: File;
+  file?: File;
   preview: string;
   details?: {
     name: string;
@@ -22,6 +23,7 @@ interface UploadedImage {
     category: string;
     supplier: string;
   };
+  unprocessedId?: string;
 }
 
 type ViewState = 'upload' | 'products' | 'create-catalog' | 'management';
@@ -39,6 +41,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   
   const { products, addProduct, uploadImage, updateProduct, updateProductStatus, refetch } = useProducts();
   const { catalogs, createCatalog, refetch: refetchCatalogs } = useCatalogs();
+  const { updateUnprocessedProduct } = useUnprocessedProducts();
   const { toast } = useToast();
 
   // Sync products from hook to local state
@@ -74,15 +77,39 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
     setEditingImage(image);
   };
 
-  const handleSaveImageDetails = (imageId: string, details: any) => {
-    setEditingImage(null);
+  const handleSaveImageDetails = async (imageId: string, details: any) => {
+    try {
+      // If editing image has unprocessedId, update it in the database
+      if (editingImage?.unprocessedId) {
+        await updateUnprocessedProduct(editingImage.unprocessedId, {
+          name: details.name,
+          code: details.code,
+          category: details.category,
+          supplier: details.supplier
+        });
+      }
+      setEditingImage(null);
+    } catch (error) {
+      console.error('Error saving image details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save image details",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleImagesProcessed = async (images: UploadedImage[]) => {
     try {
       for (const image of images) {
         if (image.details) {
-          const imageUrl = await uploadImage(image.file, image.details.code);
+          // If we have a file, upload it. Otherwise, use the existing preview URL
+          let imageUrl = image.preview; // Use existing URL from database
+          
+          if (image.file) {
+            // Only upload if we have the original file
+            imageUrl = await uploadImage(image.file, image.details.code);
+          }
           
           await addProduct({
             name: image.details.name,
@@ -163,45 +190,12 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Process Steps Header - Only show when in upload flow */}
+      {/* Simple Header for Upload View */}
       {currentView === 'upload' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-center mb-2">Upload Products & Process for Catalog</h1>
-            <p className="text-muted-foreground text-center mb-6">Upload product images, add details, and prepare for catalogs</p>
-            
-            {/* Process Steps - Mobile Responsive */}
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 mb-8">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-gradient-mixed text-white shadow-lg">
-                  1
-                </div>
-                <span className="text-sm font-medium bg-gradient-mixed bg-clip-text text-transparent">Upload</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-muted text-muted-foreground">
-                  2
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Products</span>
-                <Badge variant="secondary" className="ml-1">{localProducts.length}</Badge>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-muted text-muted-foreground">
-                  3
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Catalog</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-muted text-muted-foreground">
-                  4
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Management</span>
-                <Badge variant="secondary" className="ml-1">{catalogs.length}</Badge>
-              </div>
-            </div>
+            <h1 className="text-2xl font-bold text-center mb-2">Upload Products</h1>
+            <p className="text-muted-foreground text-center mb-6">Upload product images and add details to build your catalog</p>
           </div>
         </div>
       )}

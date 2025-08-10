@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface UploadedImage {
   id: string;
-  file: File;
+  file?: File;
   preview: string;
   details?: {
     name: string;
@@ -17,6 +17,7 @@ interface UploadedImage {
     category: string;
     supplier: string;
   };
+  unprocessedId?: string;
 }
 
 interface ProductDetailsModalProps {

@@ -9,6 +9,19 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Brand Colors - Easy to customize for different clients */
+    --brand-pink: 342 85% 69%;        /* F36D8D */
+    --brand-green: 76 55% 76%;        /* D8E5A0 */
+    --brand-orange: 37 92% 73%;       /* FAB977 */
+    --brand-brown: 37 75% 31%;        /* 8E6114 */
+    
+    /* Background gradients using brand colors - Very subtle like Lovable.dev */
+    --bg-gradient: linear-gradient(135deg, hsla(342, 85%, 69%, 0.03) 0%, transparent 30%), 
+                   linear-gradient(225deg, hsla(76, 55%, 76%, 0.04) 0%, transparent 40%), 
+                   linear-gradient(315deg, hsla(37, 92%, 73%, 0.02) 0%, transparent 35%),
+                   radial-gradient(ellipse at 10% 20%, hsla(37, 75%, 31%, 0.02) 0%, transparent 60%),
+                   radial-gradient(ellipse at 90% 80%, hsla(342, 85%, 69%, 0.025) 0%, transparent 70%);
+
     --background: 0 0% 100%;
     --foreground: 220 15% 25%;
 
@@ -18,29 +31,31 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 25%;
 
-    --primary: 220 85% 30%;
-    --primary-foreground: 0 0% 100%;
+    --primary: var(--brand-pink);
+    --primary-foreground: 0 0% 15%;
 
-    --secondary: 24 100% 50%;
+    --secondary: var(--brand-orange);
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 13% 91%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 24 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: var(--brand-green);
+    --accent-foreground: 0 0% 15%;
 
-    /* Updated gradients with orange and ink blue */
-    --gradient-primary: linear-gradient(135deg, hsl(220 85% 30%), hsl(220 85% 40%));
-    --gradient-secondary: linear-gradient(135deg, hsl(24 100% 50%), hsl(24 100% 60%));
-    --gradient-mixed: linear-gradient(135deg, hsl(220 85% 30%), hsl(24 100% 50%));
+    /* Updated gradients with brand colors */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-pink)), hsl(var(--brand-orange)));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--brand-orange)), hsl(var(--brand-green)));
+    --gradient-mixed: linear-gradient(135deg, hsl(var(--brand-pink)), hsl(var(--brand-orange)), hsl(var(--brand-green)));
+    --gradient-soft: linear-gradient(120deg, hsla(var(--brand-pink), 0.3), hsla(var(--brand-green), 0.3));
+    --gradient-warm: linear-gradient(45deg, hsla(var(--brand-orange), 0.8), hsla(var(--brand-pink), 0.8));
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: var(--brand-pink);
 
     --radius: 0.5rem;
 
@@ -55,6 +70,13 @@ All colors MUST be HSL.
   }
 
   .dark {
+    /* Dark mode background gradients using brand colors - Very subtle */
+    --bg-gradient: linear-gradient(135deg, hsla(342, 85%, 69%, 0.015) 0%, transparent 30%), 
+                   linear-gradient(225deg, hsla(76, 55%, 76%, 0.02) 0%, transparent 40%), 
+                   linear-gradient(315deg, hsla(37, 92%, 73%, 0.01) 0%, transparent 35%),
+                   radial-gradient(ellipse at 10% 20%, hsla(37, 75%, 31%, 0.01) 0%, transparent 60%),
+                   radial-gradient(ellipse at 90% 80%, hsla(342, 85%, 69%, 0.012) 0%, transparent 70%);
+
     --background: 220 15% 8%;
     --foreground: 210 40% 98%;
 
@@ -64,24 +86,24 @@ All colors MUST be HSL.
     --popover: 220 15% 10%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: var(--brand-pink);
+    --primary-foreground: 0 0% 15%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: var(--brand-orange);
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: var(--brand-green);
+    --accent-foreground: 0 0% 15%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: var(--brand-pink);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -100,6 +122,8 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background: var(--bg-gradient), hsl(var(--background));
+    min-height: 100vh;
   }
 
   /* Mobile-specific improvements */
@@ -119,5 +143,50 @@ All colors MUST be HSL.
     p, span, div {
       -webkit-text-size-adjust: 100%;
     }
+  }
+}
+
+/* Brand Color Utilities */
+@layer utilities {
+  /* Background colors */
+  .bg-brand-pink { background-color: hsl(var(--brand-pink)); }
+  .bg-brand-green { background-color: hsl(var(--brand-green)); }
+  .bg-brand-orange { background-color: hsl(var(--brand-orange)); }
+  .bg-brand-brown { background-color: hsl(var(--brand-brown)); }
+  
+  /* Text colors */
+  .text-brand-pink { color: hsl(var(--brand-pink)); }
+  .text-brand-green { color: hsl(var(--brand-green)); }
+  .text-brand-orange { color: hsl(var(--brand-orange)); }
+  .text-brand-brown { color: hsl(var(--brand-brown)); }
+  
+  /* Border colors */
+  .border-brand-pink { border-color: hsl(var(--brand-pink)); }
+  .border-brand-green { border-color: hsl(var(--brand-green)); }
+  .border-brand-orange { border-color: hsl(var(--brand-orange)); }
+  .border-brand-brown { border-color: hsl(var(--brand-brown)); }
+  
+  /* Gradient backgrounds */
+  .bg-gradient-mixed { background: var(--gradient-mixed); }
+  .bg-gradient-primary { background: var(--gradient-primary); }
+  .bg-gradient-secondary { background: var(--gradient-secondary); }
+  .bg-gradient-soft { background: var(--gradient-soft); }
+  .bg-gradient-warm { background: var(--gradient-warm); }
+  
+  /* Card with subtle gradient */
+  .bg-card-gradient { background: var(--card-gradient); }
+}
+
+/* Enhanced global background */
+@layer base {
+  html {
+    background: var(--bg-gradient), hsl(var(--background));
+    min-height: 100vh;
+  }
+  
+  /* Add subtle gradient to all cards */
+  .card, [data-ui="card"], .bg-card {
+    background: var(--card-gradient) !important;
+    backdrop-filter: blur(1px);
   }
 }
