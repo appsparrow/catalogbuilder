@@ -19,7 +19,13 @@ export default defineConfig(({ mode }) => ({
         // Ensure consistent output
         manualChunks: undefined,
       },
+      // Explicitly exclude problematic plugins
+      plugins: [],
     },
+    // Disable source maps in production to avoid issues
+    sourcemap: false,
+    // Ensure clean output
+    emptyOutDir: true,
   },
   plugins: [
     react(),
@@ -33,6 +39,7 @@ export default defineConfig(({ mode }) => ({
   },
   // Ensure Vite handles platform differences gracefully
   optimizeDeps: {
-    exclude: ['@rollup/rollup-linux-x64-gnu'],
+    exclude: ['@rollup/rollup-linux-x64-gnu', 'rollup'],
+    include: ['react', 'react-dom'],
   },
 }));

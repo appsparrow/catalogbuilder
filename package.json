@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "build:clean": "rm -rf node_modules package-lock.json && npm install && vite build",
     "build:deploy": "npm install --legacy-peer-deps --ignore-optional && vite build",
+    "build:force": "npm install --legacy-peer-deps --ignore-optional --no-optional --force && npm install rollup@4.9.5 --save-dev --legacy-peer-deps && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -89,6 +90,15 @@
       "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.9.5"
       }
+    },
+    "vite": {
+      "dependencies": {
+        "rollup": "^4.9.5"
+      }
     }
+  },
+  "resolutions": {
+    "rollup": "^4.9.5",
+    "@rollup/rollup-linux-x64-gnu": "4.9.5"
   }
 }

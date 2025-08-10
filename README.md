@@ -81,9 +81,18 @@ npm run build:clean
 npm run build:deploy
 ```
 
-### Using Build Script
+### Force Build (For persistent Rollup issues)
 ```bash
+npm run build:force
+```
+
+### Using Build Scripts
+```bash
+# Standard clean build
 ./build.sh
+
+# Deployment-specific build (handles bun/npm conflicts)
+./deploy-build.sh
 ```
 
 ## 🔧 Troubleshooting Build Issues
@@ -106,6 +115,15 @@ If you encounter Rollup/npm dependency errors during build:
    - The `.npmrc` file is configured to handle Linux deployment environments
    - Vite config excludes problematic Rollup dependencies
    - Package.json includes overrides for Rollup optional dependencies
+   - `.bunfig.toml` handles bun-specific configurations
+   - `.nvmrc` ensures consistent Node.js version
+
+4. **For deployment environments with bun/npm conflicts:**
+   ```bash
+   npm run build:force
+   # or
+   ./deploy-build.sh
+   ```
 
 ## Can I connect a custom domain to my Lovable project?
 
