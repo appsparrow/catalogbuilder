@@ -28,6 +28,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    // Avoid Rollup native module issues on Cloudflare Pages
+    global: 'globalThis',
+  },
   optimizeDeps: {
     exclude: ['@rollup/rollup-linux-x64-gnu'],
   },

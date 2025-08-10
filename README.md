@@ -104,8 +104,9 @@ If you encounter Rollup/npm dependency errors during build:
 
 3. **Platform-specific issues:**
    - The `.npmrc` file skips optional dependencies that cause build issues
-   - Vite config excludes problematic Rollup dependencies
-   - Package.json includes overrides for Rollup optional dependencies
+   - Vite config excludes problematic Rollup dependencies and defines global properly
+   - Package.json includes Rollup as a direct dependency (version 4.9.5)
+   - No `overrides` field (incompatible with bun install)
 
 ## Can I connect a custom domain to my Lovable project?
 
