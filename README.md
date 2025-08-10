@@ -64,6 +64,49 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/4e30c8a0-7596-4c36-8be5-16728e048ebb) and click on Share -> Publish.
 
+## 🚀 Build & Deployment
+
+### Quick Build
+```bash
+npm run build
+```
+
+### Clean Build (Recommended for deployment)
+```bash
+npm run build:clean
+```
+
+### Deployment Build (Handles dependency issues)
+```bash
+npm run build:deploy
+```
+
+### Using Build Script
+```bash
+./build.sh
+```
+
+## 🔧 Troubleshooting Build Issues
+
+If you encounter Rollup/npm dependency errors during build:
+
+1. **Use the deployment build script:**
+   ```bash
+   npm run build:deploy
+   ```
+
+2. **Clean install:**
+   ```bash
+   rm -rf node_modules package-lock.json
+   npm install --legacy-peer-deps --ignore-optional
+   npm run build
+   ```
+
+3. **Platform-specific issues:**
+   - The `.npmrc` file is configured to handle Linux deployment environments
+   - Vite config excludes problematic Rollup dependencies
+   - Package.json includes overrides for Rollup optional dependencies
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
