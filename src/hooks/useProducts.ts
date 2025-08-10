@@ -51,9 +51,10 @@ export const useProducts = () => {
   const addProduct = async (product: Omit<Product, 'id' | 'created_at'>) => {
     try {
       // Convert isActive to isactive for database
+      const { isActive, ...rest } = product as any;
       const dbProduct = {
-        ...product,
-        isactive: product.isActive
+        ...rest,
+        isactive: isActive ?? true
       };
       
       const { data, error } = await supabase

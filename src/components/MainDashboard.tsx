@@ -164,8 +164,8 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
       {currentView === 'upload' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-center mb-2">Product Catalog Builder</h1>
-            <p className="text-muted-foreground text-center mb-6">Upload products and create custom catalogs</p>
+            <h1 className="text-2xl font-bold text-center mb-2">Upload Products & Process for Catalog</h1>
+            <p className="text-muted-foreground text-center mb-6">Upload product images, add details, and prepare for catalogs</p>
             
             {/* Process Steps - Mobile Responsive */}
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 mb-8">

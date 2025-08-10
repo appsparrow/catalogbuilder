@@ -105,7 +105,7 @@ export const ProductsLibrary = ({
         className={`overflow-hidden hover:shadow-lg transition-all cursor-pointer ${
           isSelected ? 'ring-2 ring-primary shadow-lg' : ''
         } ${!isActive ? 'opacity-60' : ''}`}
-        onClick={() => onProductSelect(product.id, !isSelected)}
+        onClick={() => { if (isActive) onProductSelect(product.id, !isSelected); }}
       >
         <CardContent className="p-0">
           <div className="relative">
@@ -117,9 +117,10 @@ export const ProductsLibrary = ({
             <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
               <Checkbox
                 checked={isSelected}
-                onCheckedChange={(checked) => 
-                  onProductSelect(product.id, checked as boolean)
-                }
+                disabled={!isActive}
+                onCheckedChange={(checked) => {
+                  if (isActive) onProductSelect(product.id, checked as boolean);
+                }}
                 className="bg-background border-2 shadow-sm"
                 onClick={(e) => e.stopPropagation()}
               />
@@ -193,7 +194,7 @@ export const ProductsLibrary = ({
         className={`hover:shadow-lg transition-all cursor-pointer ${
           isSelected ? 'ring-2 ring-primary shadow-lg' : ''
         } ${!isActive ? 'opacity-60' : ''}`}
-        onClick={() => onProductSelect(product.id, !isSelected)}
+        onClick={() => { if (isActive) onProductSelect(product.id, !isSelected); }}
       >
         <CardContent className="p-4">
           <div className="flex items-center gap-4">
@@ -220,9 +221,10 @@ export const ProductsLibrary = ({
             <div className="flex items-center gap-2">
               <Checkbox
                 checked={isSelected}
-                onCheckedChange={(checked) => 
-                  onProductSelect(product.id, checked as boolean)
-                }
+                disabled={!isActive}
+                onCheckedChange={(checked) => {
+                  if (isActive) onProductSelect(product.id, checked as boolean);
+                }}
                 className="bg-background border-2 shadow-sm"
                 onClick={(e) => e.stopPropagation()}
               />
