@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
@@ -28,11 +28,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  define: {
-    // Avoid Rollup native module issues on Cloudflare Pages
-    global: 'globalThis',
-  },
   optimizeDeps: {
-    exclude: ['@rollup/rollup-linux-x64-gnu'],
+    include: ['react', 'react-dom'],
   },
 }));
