@@ -27,12 +27,12 @@ export default function Index() {
             <div className="flex items-center gap-3">
               <img
                 src="./logo.png"
-                alt="Cuzzata logo"
+                alt="Cuzata logo"
                 className="h-10 w-10 rounded-md object-contain"
                 loading="lazy"
               />
               <h1 className="text-xl font-bold text-foreground">
-                Cuzzata
+                Cuzata
               </h1>
             </div>
 
