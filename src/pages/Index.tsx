@@ -18,7 +18,7 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-app-gradient">
       {/* Header */}
       <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,12 +26,12 @@ export default function Index() {
             {/* Logo and Title */}
             <div className="flex items-center gap-3">
               <img
-                src="./logo.png"
+                src="./logomark-cuzata.png"
                 alt="Cuzata logo"
                 className="h-10 w-10 rounded-md object-contain"
                 loading="lazy"
               />
-              <h1 className="text-xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-brand-brown">
                 Cuzata
               </h1>
             </div>

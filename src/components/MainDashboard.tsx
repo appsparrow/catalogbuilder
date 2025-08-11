@@ -189,7 +189,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-app-gradient">
       {/* Simple Header for Upload View */}
       {currentView === 'upload' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">

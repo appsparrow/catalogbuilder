@@ -40,7 +40,7 @@ const CatalogPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center bg-app-gradient p-4">
         <Card className="w-full max-w-sm">
           <CardContent className="p-6 sm:p-8 text-center">
             <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin mx-auto mb-4" />
@@ -53,7 +53,7 @@ const CatalogPage = () => {
 
   if (error || !catalog) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center bg-app-gradient p-4">
         <Card className="w-full max-w-sm">
           <CardContent className="p-6 sm:p-8 text-center">
             <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Catalog Not Found</h1>

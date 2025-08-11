@@ -15,12 +15,12 @@ All colors MUST be HSL.
     --brand-orange: 37 92% 73%;       /* FAB977 */
     --brand-brown: 37 75% 31%;        /* 8E6114 */
     
-    /* Background gradients using brand colors - Very subtle like Lovable.dev */
-    --bg-gradient: linear-gradient(135deg, hsla(342, 85%, 69%, 0.03) 0%, transparent 30%), 
-                   linear-gradient(225deg, hsla(76, 55%, 76%, 0.04) 0%, transparent 40%), 
-                   linear-gradient(315deg, hsla(37, 92%, 73%, 0.02) 0%, transparent 35%),
-                   radial-gradient(ellipse at 10% 20%, hsla(37, 75%, 31%, 0.02) 0%, transparent 60%),
-                   radial-gradient(ellipse at 90% 80%, hsla(342, 85%, 69%, 0.025) 0%, transparent 70%);
+    /* Background gradients using brand colors - More visible */
+    --bg-gradient: linear-gradient(135deg, hsla(342, 85%, 69%, 0.1) 0%, transparent 30%), 
+                   linear-gradient(225deg, hsla(76, 55%, 76%, 0.1) 0%, transparent 40%), 
+                   linear-gradient(315deg, hsla(37, 92%, 73%, 0.06) 0%, transparent 35%),
+                   radial-gradient(ellipse at 10% 20%, hsla(37, 75%, 31%, 0.04) 0%, transparent 60%),
+                   radial-gradient(ellipse at 90% 80%, hsla(342, 85%, 69%, 0.07) 0%, transparent 70%);
 
     --background: 0 0% 100%;
     --foreground: 220 15% 25%;
@@ -49,6 +49,9 @@ All colors MUST be HSL.
     --gradient-mixed: linear-gradient(135deg, hsl(var(--brand-pink)), hsl(var(--brand-orange)), hsl(var(--brand-green)));
     --gradient-soft: linear-gradient(120deg, hsla(var(--brand-pink), 0.3), hsla(var(--brand-green), 0.3));
     --gradient-warm: linear-gradient(45deg, hsla(var(--brand-orange), 0.8), hsla(var(--brand-pink), 0.8));
+    
+    /* Card gradient for subtle overlay */
+    --card-gradient: linear-gradient(135deg, hsla(342, 85%, 69%, 0.02) 0%, transparent 50%);
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -70,12 +73,12 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark mode background gradients using brand colors - Very subtle */
-    --bg-gradient: linear-gradient(135deg, hsla(342, 85%, 69%, 0.015) 0%, transparent 30%), 
-                   linear-gradient(225deg, hsla(76, 55%, 76%, 0.02) 0%, transparent 40%), 
-                   linear-gradient(315deg, hsla(37, 92%, 73%, 0.01) 0%, transparent 35%),
-                   radial-gradient(ellipse at 10% 20%, hsla(37, 75%, 31%, 0.01) 0%, transparent 60%),
-                   radial-gradient(ellipse at 90% 80%, hsla(342, 85%, 69%, 0.012) 0%, transparent 70%);
+    /* Dark mode background gradients using brand colors - More visible */
+    --bg-gradient: linear-gradient(135deg, hsla(342, 85%, 69%, 0.04) 0%, transparent 30%), 
+                   linear-gradient(225deg, hsla(76, 55%, 76%, 0.05) 0%, transparent 40%), 
+                   linear-gradient(315deg, hsla(37, 92%, 73%, 0.03) 0%, transparent 35%),
+                   radial-gradient(ellipse at 10% 20%, hsla(37, 75%, 31%, 0.02) 0%, transparent 60%),
+                   radial-gradient(ellipse at 90% 80%, hsla(342, 85%, 69%, 0.035) 0%, transparent 70%);
 
     --background: 220 15% 8%;
     --foreground: 210 40% 98%;
@@ -97,6 +100,9 @@ All colors MUST be HSL.
 
     --accent: var(--brand-green);
     --accent-foreground: 0 0% 15%;
+
+    /* Card gradient for dark mode */
+    --card-gradient: linear-gradient(135deg, hsla(342, 85%, 69%, 0.01) 0%, transparent 50%);
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -124,6 +130,12 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     background: var(--bg-gradient), hsl(var(--background));
     min-height: 100vh;
+  }
+  
+  /* Ensure the gradient is visible */
+  html, body {
+    background: var(--bg-gradient), hsl(var(--background)) !important;
+    background-attachment: fixed;
   }
 
   /* Mobile-specific improvements */
@@ -175,6 +187,12 @@ All colors MUST be HSL.
   
   /* Card with subtle gradient */
   .bg-card-gradient { background: var(--card-gradient); }
+  
+  /* Main background gradient */
+  .bg-app-gradient { 
+    background: var(--bg-gradient), hsl(var(--background));
+    background-attachment: fixed;
+  }
 }
 
 /* Enhanced global background */

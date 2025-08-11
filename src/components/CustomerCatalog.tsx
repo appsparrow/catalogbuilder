@@ -170,54 +170,80 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
-      {/* Header */}
-      <div className="text-center mb-8 sm:mb-12">
-        <Card className="bg-white/95 backdrop-blur-md border-border">
-          <CardContent className="p-4 sm:p-8">
-            {/* Always show ILLUS DECOR logo in header */}
-            <img 
-              src="/logo-IllusDecor.png" 
-              alt="ILLUS DECOR Logo" 
-              className="h-16 sm:h-20 mx-auto mb-4 object-contain" 
-            />
-            <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">{displayCatalog.name}</h1>
-            <p className="text-lg sm:text-xl text-primary mb-4">by {displayCatalog.brand_name}</p>
-            <p className="text-sm sm:text-base text-muted-foreground">Select products you're interested in</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Customer Info Form */}
-      <Card className="mb-6 sm:mb-8 bg-white/95 backdrop-blur-md border-border">
+      {/* Header with Logo, Catalog Info, and User Actions */}
+      <Card className="bg-white/95 backdrop-blur-md border-border mb-8 sm:mb-12">
         <CardContent className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <Label htmlFor="customer-name" className="text-foreground">Your Name *</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="customer-name"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="pl-9"
-                  required
-                />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Logo and Catalog Info */}
+            <div className="lg:col-span-4 text-center lg:text-left">
+              <img 
+                src="/logo-IllusDecor.png" 
+                alt="ILLUS DECOR Logo" 
+                className="h-12 sm:h-16 mx-auto lg:mx-0 mb-4 object-contain" 
+              />
+              <h1 className="text-xl sm:text-3xl font-bold text-foreground mb-2">{displayCatalog.name}</h1>
+              <p className="text-base sm:text-lg text-primary">by {displayCatalog.brand_name}</p>
+            </div>
+
+            {/* User Information Form */}
+            <div className="lg:col-span-5 space-y-4">
+              <div>
+                <Label htmlFor="customer-name" className="text-foreground">Your Name *</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="customer-name"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="pl-9"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="customer-email" className="text-foreground">Email (Optional)</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="customer-email"
+                    type="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="pl-9"
+                  />
+                </div>
               </div>
             </div>
-            <div>
-              <Label htmlFor="customer-email" className="text-foreground">Email (Optional)</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="customer-email"
-                  type="email"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="pl-9"
-                />
-              </div>
+
+            {/* Share Preferences Section */}
+            <div className="lg:col-span-3 flex flex-col justify-between h-full">
+              {likedProducts.length > 0 ? (
+                <div className="space-y-4">
+                  <p className="text-sm sm:text-base text-foreground text-center lg:text-left">
+                    You've liked {likedProducts.length} product{likedProducts.length > 1 ? 's' : ''}
+                  </p>
+                  <Button 
+                    onClick={shareResponse} 
+                    disabled={isSubmitting || !customerName.trim()}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 w-full"
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    {isSubmitting ? 'Sharing...' : 'Share Your Preferences'}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm sm:text-base text-muted-foreground text-center lg:text-left">
+                    Select products you like by clicking the heart icon
+                  </p>
+                  <div className="flex items-center gap-2 justify-center lg:justify-start">
+                    <Heart className="h-5 w-5 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Click to like products</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -317,9 +343,6 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
                     <Badge variant="secondary" className="bg-primary/20 text-primary text-xs sm:text-sm">
                       {product.category}
                     </Badge>
-                    <Badge variant="outline" className="border-border text-muted-foreground text-xs sm:text-sm">
-                      {product.supplier}
-                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -328,30 +351,7 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
         </div>
       )}
 
-      {/* Share Response */}
-      <div className="text-center">
-        <Card className="bg-white/95 backdrop-blur-md border-border inline-block w-full sm:w-auto">
-          <CardContent className="p-4 sm:p-6">
-            {likedProducts.length > 0 ? (
-              <p className="text-sm sm:text-base text-foreground mb-4">
-                You've liked {likedProducts.length} product{likedProducts.length > 1 ? 's' : ''}
-              </p>
-            ) : (
-              <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                To share your preferences, please enter your name and click the heart icon.
-              </p>
-            )}
-            <Button 
-              onClick={shareResponse} 
-              disabled={isSubmitting || !customerName.trim()}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
-            >
-              <Share2 className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Sharing...' : 'Share Your Preferences'}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+
     </div>
   );
 };
