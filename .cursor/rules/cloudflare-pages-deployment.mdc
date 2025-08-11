@@ -1,0 +1,17 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+
+When deploying React + Vite projects to Cloudflare Pages:
+
+1. ALWAYS use @vitejs/plugin-react (Babel-based)
+2. NEVER use @vitejs/plugin-react-swc (SWC has native binding issues)
+3. Keep package.json simple - no overrides or complex dependencies
+4. Use standard Vite configuration without platform-specific optimizations
+5. If user reports "Failed to load native binding" or "@swc/core" errors, immediately switch to Babel plugin
+
+This is a known issue - SWC fails on Cloudflare Pages due to native module incompatibilities.
+Babel is the industry standard and works everywhere.

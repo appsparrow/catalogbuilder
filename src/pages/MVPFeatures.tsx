@@ -121,11 +121,11 @@ const MVPFeatures = () => {
             <Link to="/" className="flex items-center gap-2 sm:gap-3">
               <img 
                 src="/lovable-uploads/ad9485b6-d796-4b14-a5b2-0701ba070683.png" 
-                alt="CUZATA Logo" 
+                alt="ILLUS DECOR Logo" 
                 className="h-6 w-6 sm:h-8 sm:w-8"
               />
               <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                CUZATA
+                ILLUS DECOR
               </h1>
             </Link>
             <Link to="/">
@@ -317,7 +317,7 @@ const MVPFeatures = () => {
                 Lovable app
               </a>{" "}
               built by human at{" "}
-              <span className="text-white font-medium">Cuzata</span> for{" "}
+                              <span className="text-white font-medium">ILLUS DECOR</span> for{" "}
               <a 
                 href="https://illus.in" 
                 target="_blank" 
@@ -328,7 +328,7 @@ const MVPFeatures = () => {
               </a>
             </p>
             <p className="text-xs opacity-75">
-              © 2024 Cuzata. All rights reserved.
+              © 2024 ILLUS DECOR. All rights reserved.
             </p>
           </div>
         </div>

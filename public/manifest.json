@@ -1,0 +1,21 @@
+{
+  "name": "ILLUS DECOR - Custom Catalogs",
+  "short_name": "ILLUS DECOR",
+  "description": "Create and share beautiful product catalogs with ILLUS DECOR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8E6114",
+  "icons": [
+    {
+      "src": "/logo-IllusDecor.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo-IllusDecor.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

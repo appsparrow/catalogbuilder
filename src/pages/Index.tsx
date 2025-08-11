@@ -32,7 +32,7 @@ export default function Index() {
                 loading="lazy"
               />
               <h1 className="text-xl font-bold text-foreground">
-                Cuzata
+                Cuzzata
               </h1>
             </div>
 

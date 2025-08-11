@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Share2, ArrowLeft } from "lucide-react";
+import { Share2, ArrowLeft, Upload, X } from "lucide-react";
 import { Product } from "@/types/catalog";
 import { useToast } from "@/hooks/use-toast";
+import { useLogoUpload } from "@/hooks/useLogoUpload";
 
 interface CatalogCreatorProps {
   selectedProducts: Product[];
@@ -15,6 +16,7 @@ interface CatalogCreatorProps {
   onCatalogCreate: (catalogData: {
     name: string;
     brand_name: string;
+    logo_url?: string;
     customer_name: string;
     product_ids: string[];
   }) => Promise<any>;
@@ -26,8 +28,27 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
   const [catalogName, setCatalogName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("/logo-IllusDecor.png");
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
+  const { uploadLogo } = useLogoUpload();
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview("");
+    if (logoPreview) {
+      URL.revokeObjectURL(logoPreview);
+    }
+  };
 
   const handleCreateCatalog = async () => {
     if (!catalogName || !brandName || !customerName) {
@@ -41,9 +62,15 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
 
     setIsCreating(true);
     try {
+      let logoUrl = "/logo-IllusDecor.png"; // Default to ILLUS DECOR logo
+      if (logoFile) {
+        logoUrl = await uploadLogo(logoFile, brandName);
+      }
+
       const result = await onCatalogCreate({
         name: catalogName,
         brand_name: brandName,
+        logo_url: logoUrl,
         customer_name: customerName,
         product_ids: selectedProducts.map(p => p.id)
       });
@@ -124,6 +151,77 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="Customer this catalog is for"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="logo-upload">Company Logo (Optional)</Label>
+              <div className="space-y-3">
+                {!logoPreview ? (
+                  <div className="space-y-3">
+                    <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 text-center">
+                      <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                      <Input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                        className="w-full"
+                      >
+                        Upload Custom Logo
+                      </Button>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Recommended: Square logo, max 2MB
+                      </p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground mb-2">Or use a preset logo:</p>
+                      <div className="flex justify-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setLogoPreview("/logo-IllusDecor.png");
+                            setLogoFile(null);
+                          }}
+                          className="flex flex-col items-center p-3 h-auto"
+                        >
+                          <img
+                            src="/logo-IllusDecor.png"
+                            alt="ILLUS DECOR Logo"
+                            className="w-12 h-12 object-contain mb-2"
+                          />
+                          <span className="text-xs">ILLUS DECOR</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <img
+                      src={logoPreview}
+                      alt="Logo Preview"
+                      className="w-24 h-24 object-contain mx-auto border rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={removeLogo}
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <Button 

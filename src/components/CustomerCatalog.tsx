@@ -31,8 +31,8 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
   const displayCatalog = catalog || {
     id: "demo-catalog",
     name: "Spring Collection 2024",
-    brand_name: "Your Brand Here",
-    logo_url: "",
+    brand_name: "ILLUS DECOR",
+    logo_url: "/logo-IllusDecor.png",
     shareable_link: "demo",
     created_at: new Date().toISOString(),
     products: [
@@ -134,9 +134,12 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
       <div className="text-center mb-8 sm:mb-12">
         <Card className="bg-white/95 backdrop-blur-md border-border">
           <CardContent className="p-4 sm:p-8">
-            {displayCatalog.logo_url && (
-              <img src={displayCatalog.logo_url} alt="Brand Logo" className="h-12 sm:h-16 mx-auto mb-4" />
-            )}
+            {/* Always show ILLUS DECOR logo in header */}
+            <img 
+              src="/logo-IllusDecor.png" 
+              alt="ILLUS DECOR Logo" 
+              className="h-16 sm:h-20 mx-auto mb-4 object-contain" 
+            />
             <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">{displayCatalog.name}</h1>
             <p className="text-lg sm:text-xl text-primary mb-4">by {displayCatalog.brand_name}</p>
             <p className="text-sm sm:text-base text-muted-foreground">Select products you're interested in</p>
@@ -295,7 +298,7 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
               </p>
             ) : (
               <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                Select products you're interested in by clicking the heart icon
+                To share your preferences, please enter your name and click the heart icon.
               </p>
             )}
             <Button 

@@ -19,7 +19,7 @@ export const AdminDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-foreground mb-2">CUZATA Dashboard</h2>
+        <h2 className="text-3xl font-bold text-foreground mb-2">ILLUS DECOR Dashboard</h2>
         <p className="text-muted-foreground">Manage your product catalogs and track customer responses</p>
       </div>
 

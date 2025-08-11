@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Share, Eye, ExternalLink } from "lucide-react";
+import { Plus, Share, Eye, ExternalLink, Upload, X } from "lucide-react";
+import { useLogoUpload } from "@/hooks/useLogoUpload";
 
 interface CatalogBuilderProps {
   products: Product[];
@@ -26,9 +27,27 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
   const [catalogName, setCatalogName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [customerName, setCustomerName] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const { toast } = useToast();
+  const { uploadLogo } = useLogoUpload();
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview("");
+    if (logoPreview) {
+      URL.revokeObjectURL(logoPreview);
+    }
+  };
 
   const handleProductSelect = (productId: string, checked: boolean) => {
     if (checked) {
@@ -49,6 +68,11 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
     }
 
     try {
+      let logoUrl = "";
+      if (logoFile) {
+        logoUrl = await uploadLogo(logoFile, brandName);
+      }
+
       await onCatalogCreate({
         name: catalogName,
         brand_name: brandName,
@@ -61,7 +85,8 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
       setCatalogName("");
       setBrandName("");
       setCustomerName("");
-      setLogoUrl("");
+      setLogoFile(null);
+      setLogoPreview("");
       setSelectedProducts([]);
     } catch (error) {
       console.error('Error creating catalog:', error);
@@ -122,13 +147,70 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
             </div>
 
             <div>
-              <Label htmlFor="logo-url" className="text-foreground">Logo URL (Optional)</Label>
-              <Input
-                id="logo-url"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="Enter logo URL"
-              />
+              <Label htmlFor="logo-upload" className="text-foreground">Company Logo (Optional)</Label>
+              <div className="space-y-3">
+                {!logoPreview ? (
+                  <div className="space-y-3">
+                    <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-4 text-center">
+                      <Upload className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
+                      <Input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                        className="w-full"
+                      >
+                        Upload Logo
+                      </Button>
+                    </div>
+                    
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground mb-2">Or use preset:</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setLogoPreview("/logo-IllusDecor.png");
+                          setLogoFile(null);
+                        }}
+                        className="flex flex-col items-center p-2 h-auto"
+                      >
+                        <img
+                          src="/logo-IllusDecor.png"
+                          alt="ILLUS DECOR Logo"
+                          className="w-8 h-8 object-contain mb-1"
+                        />
+                        <span className="text-xs">ILLUS DECOR</span>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <img
+                      src={logoPreview}
+                      alt="Logo Preview"
+                      className="w-20 h-20 object-contain mx-auto border rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={removeLogo}
+                      className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
+                    >
+                      <X className="h-2 w-2" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
