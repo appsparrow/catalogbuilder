@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,31 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { toast } = useToast();
+
+  // Load customer data from localStorage on mount
+  useEffect(() => {
+    const savedCustomerName = localStorage.getItem('customerName');
+    const savedCustomerEmail = localStorage.getItem('customerEmail');
+    if (savedCustomerName) {
+      setCustomerName(savedCustomerName);
+    }
+    if (savedCustomerEmail) {
+      setCustomerEmail(savedCustomerEmail);
+    }
+
+    // Load existing likes for this customer and catalog if they exist
+    if (savedCustomerName && catalog) {
+      const storageKey = `likes_${catalog.id}_${savedCustomerName}`;
+      const savedLikes = localStorage.getItem(storageKey);
+      if (savedLikes) {
+        try {
+          setLikedProducts(JSON.parse(savedLikes));
+        } catch (error) {
+          console.error('Error parsing saved likes:', error);
+        }
+      }
+    }
+  }, [catalog]);
 
   // Use mock data if no catalog provided (for demo)
   const displayCatalog = catalog || {
@@ -79,11 +104,17 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
 
   const toggleLike = (productId: string) => {
     setLikedProducts(prev => {
-      if (prev.includes(productId)) {
-        return prev.filter(id => id !== productId);
-      } else {
-        return [...prev, productId];
+      const newLikes = prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId];
+      
+      // Save to localStorage if customer name and catalog exist
+      if (customerName && catalog) {
+        const storageKey = `likes_${catalog.id}_${customerName}`;
+        localStorage.setItem(storageKey, JSON.stringify(newLikes));
       }
+      
+      return newLikes;
     });
   };
 
@@ -100,9 +131,18 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
     setIsSubmitting(true);
     
     try {
+      const trimmedName = customerName.trim();
+      const trimmedEmail = customerEmail.trim() || undefined;
+      
+      // Save customer info to localStorage
+      localStorage.setItem('customerName', trimmedName);
+      if (trimmedEmail) {
+        localStorage.setItem('customerEmail', trimmedEmail);
+      }
+
       const response = {
-        customerName: customerName.trim(),
-        customerEmail: customerEmail.trim() || undefined,
+        customerName: trimmedName,
+        customerEmail: trimmedEmail,
         likedProducts,
       };
 

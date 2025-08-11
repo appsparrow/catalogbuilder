@@ -46,18 +46,55 @@ export const useCustomerResponses = () => {
     response_data?: any;
   }) => {
     try {
-      const { data, error } = await supabase
+      // Check if customer already has a response for this catalog
+      const { data: existingResponse, error: checkError } = await supabase
         .from('customer_responses')
-        .insert([responseData])
-        .select()
+        .select('*')
+        .eq('catalog_id', responseData.catalog_id)
+        .eq('customer_name', responseData.customer_name)
         .single();
 
-      if (error) throw error;
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      let data;
+      if (existingResponse) {
+        // Update existing response
+        const { data: updatedData, error: updateError } = await supabase
+          .from('customer_responses')
+          .update({
+            customer_email: responseData.customer_email,
+            liked_products: responseData.liked_products,
+            response_data: responseData.response_data,
+          })
+          .eq('id', existingResponse.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        data = updatedData;
+
+        // Update in local state
+        setResponses(prev => prev.map(r => r.id === existingResponse.id ? data : r));
+      } else {
+        // Create new response
+        const { data: newData, error: insertError } = await supabase
+          .from('customer_responses')
+          .insert([responseData])
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        data = newData;
+
+        // Add to local state
+        setResponses(prev => [data, ...prev]);
+      }
       
-      setResponses(prev => [data, ...prev]);
       toast({
         title: "Success",
-        description: "Response saved successfully",
+        description: existingResponse ? "Response updated successfully" : "Response saved successfully",
       });
       
       return data;
