@@ -55,6 +55,7 @@ export type Database = {
           logo_url: string | null
           name: string
           shareable_link: string
+          user_id: string | null
         }
         Insert: {
           brand_name: string
@@ -63,6 +64,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           shareable_link: string
+          user_id?: string | null
         }
         Update: {
           brand_name?: string
@@ -71,6 +73,40 @@ export type Database = {
           logo_url?: string | null
           name?: string
           shareable_link?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      company_profiles: {
+        Row: {
+          company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          logo_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          contact_person: string
+          created_at?: string
+          email: string
+          id?: string
+          logo_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          contact_person?: string
+          created_at?: string
+          email?: string
+          id?: string
+          logo_url?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
