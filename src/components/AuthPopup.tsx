@@ -45,20 +45,35 @@ export const AuthPopup = ({ isOpen, onSuccess }: AuthPopupProps) => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    // Only allow numbers
-    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+    // Allow numbers, navigation keys, and Enter key
+    if (!/[0-9]/.test(e.key) && 
+        e.key !== 'Backspace' && 
+        e.key !== 'Delete' && 
+        e.key !== 'Tab' && 
+        e.key !== 'Enter') {
       e.preventDefault();
+    }
+    
+    // Submit form on Enter key if code is 4 digits
+    if (e.key === 'Enter' && code.length === 4) {
+      e.preventDefault();
+      handleSubmit(e as any);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm">
       <Card className="w-full max-w-sm mx-4">
         <CardHeader className="text-center pb-4">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Lock className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-2 flex w-24 h-24 items-center justify-center rounded-full bg-white">
+            <img
+              src="/logo-cuzata.png"
+              alt="Cuzata logo"
+              className="h-20 w-20 object-contain"
+              loading="lazy"
+            />
           </div>
           <CardTitle className="text-xl font-semibold">Access Required</CardTitle>
           <p className="text-sm text-muted-foreground">
