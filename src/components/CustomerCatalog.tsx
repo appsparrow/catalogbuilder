@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Heart, Share2, User, Mail, Search, Filter, Package } from "lucide-react";
+import { Heart, Share2, User, Mail, Search, Filter, Package, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CatalogWithProducts } from "@/types/catalog";
 
@@ -25,6 +25,7 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedImage, setSelectedImage] = useState<{url: string, name: string} | null>(null);
   const { toast } = useToast();
 
   // Load customer data from localStorage on mount
@@ -316,7 +317,8 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
                   <img
                     src={product.image_url}
                     alt={product.name}
-                    className="w-full h-48 sm:h-64 object-cover"
+                    className="w-full h-48 sm:h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => setSelectedImage({url: product.image_url, name: product.name})}
                   />
                   <Button
                     size="icon"
@@ -351,7 +353,30 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
         </div>
       )}
 
-
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="relative max-w-4xl max-h-[90vh] mx-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 h-10 w-10 bg-white/20 hover:bg-white/30 text-white z-10"
+              onClick={() => setSelectedImage(null)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            <img
+              src={selectedImage.url}
+              alt={selectedImage.name}
+              className="w-full h-auto max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              onClick={() => setSelectedImage(null)}
+            />
+            <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-2 rounded-lg">
+              <p className="text-sm font-medium">{selectedImage.name}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

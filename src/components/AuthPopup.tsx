@@ -66,12 +66,12 @@ export const AuthPopup = ({ isOpen, onSuccess }: AuthPopupProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm">
       <Card className="w-full max-w-sm mx-4">
-        <CardHeader className="text-center pb-4">
-          <div className="mx-auto mb-2 flex w-24 h-24 items-center justify-center rounded-full bg-white">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-full flex items-center justify-center">
             <img
               src="/logo-cuzata.png"
               alt="Cuzata logo"
-              className="h-20 w-20 object-contain"
+              className="h-20 w-40 object-contain"
               loading="lazy"
             />
           </div>

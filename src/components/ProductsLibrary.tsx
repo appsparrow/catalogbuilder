@@ -17,7 +17,8 @@ import {
   Eye, 
   EyeOff,
   MoreVertical,
-  Upload
+  Upload,
+  X
 } from "lucide-react";
 import { Product } from "@/types/catalog";
 import { EditProductModal } from "./EditProductModal";
@@ -51,6 +52,7 @@ export const ProductsLibrary = ({
   const [showInactive, setShowInactive] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{url: string, name: string} | null>(null);
 
   // Filter products by status
   const processedProducts = products.filter(product => 
@@ -112,7 +114,8 @@ export const ProductsLibrary = ({
             <img
               src={product.image_url}
               alt={product.name}
-              className="w-full h-40 sm:h-48 object-cover"
+              className="w-full h-40 sm:h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setSelectedImage({url: product.image_url, name: product.name})}
             />
             <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
               <Checkbox
@@ -202,7 +205,8 @@ export const ProductsLibrary = ({
               <img
                 src={product.image_url}
                 alt={product.name}
-                className="w-16 h-16 object-cover rounded-lg"
+                className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => setSelectedImage({url: product.image_url, name: product.name})}
               />
             </div>
             <div className="flex-1 min-w-0">
@@ -213,9 +217,9 @@ export const ProductsLibrary = ({
                 )}
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground mb-2">{product.code}</p>
-              <div className="flex gap-2 flex-wrap">
-                <Badge variant="secondary" className="text-xs">{product.category}</Badge>
-                <Badge variant="outline" className="text-xs">{product.supplier}</Badge>
+              <div className="flex gap-2">
+                <Badge variant="secondary" className="text-xs truncate max-w-20">{product.category}</Badge>
+                <Badge variant="outline" className="text-xs truncate max-w-20">{product.supplier}</Badge>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -225,7 +229,7 @@ export const ProductsLibrary = ({
                 onCheckedChange={(checked) => {
                   if (isActive) onProductSelect(product.id, checked as boolean);
                 }}
-                className="bg-background border-2 shadow-sm"
+                className="bg-background border-2 shadow-sm h-4 w-4"
                 onClick={(e) => e.stopPropagation()}
               />
               <DropdownMenu>
@@ -282,15 +286,21 @@ export const ProductsLibrary = ({
             {processedProducts.length} processed products available • {selectedProducts.length} selected for catalog
           </p>
         </div>
-        {selectedProducts.length > 0 && (
-          <Button onClick={onCreateCatalog} className="flex items-center gap-2 w-full sm:w-auto">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Create Catalog ({selectedProducts.length})</span>
-            <span className="sm:hidden">Create Catalog ({selectedProducts.length})</span>
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        )}
       </div>
+
+      {/* Sticky Create Catalog Button */}
+      {selectedProducts.length > 0 && (
+        <div className="sticky top-4 z-10 mb-6">
+          <div className="flex justify-end">
+            <Button onClick={onCreateCatalog} className="flex items-center gap-2 shadow-lg">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Catalog ({selectedProducts.length})</span>
+              <span className="sm:hidden">Create Catalog ({selectedProducts.length})</span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className="space-y-4 sm:space-y-6">
@@ -422,6 +432,31 @@ export const ProductsLibrary = ({
         onClose={() => setEditingProduct(null)}
         onSave={handleSaveEdit}
       />
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="relative max-w-4xl max-h-[90vh] mx-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 h-10 w-10 bg-white/20 hover:bg-white/30 text-white z-10"
+              onClick={() => setSelectedImage(null)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            <img
+              src={selectedImage.url}
+              alt={selectedImage.name}
+              className="w-full h-auto max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              onClick={() => setSelectedImage(null)}
+            />
+            <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-2 rounded-lg">
+              <p className="text-sm font-medium">{selectedImage.name}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
