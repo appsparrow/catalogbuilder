@@ -31,7 +31,7 @@ export default function Index() {
                 className="h-10 w-10 rounded-md object-contain"
                 loading="lazy"
               />
-              <h1 className="text-xl font-bold text-brand-brown mt-2">Cuzata</h1>
+              <h1 className="text-2xl font-semibold text-brown">Cuzata</h1>
             </div>
 
             {/* Desktop Navigation */}
