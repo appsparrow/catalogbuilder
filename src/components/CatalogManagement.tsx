@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CatalogWithProducts, CustomerResponse } from "@/types/catalog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,9 @@ import {
   Calendar,
   User,
   Mail,
-  Package
+  Package,
+  Users,
+  Globe
 } from "lucide-react";
 import {
   Table,
@@ -49,6 +51,7 @@ export const CatalogManagement = ({ catalogs, onCatalogDeleted }: CatalogManagem
   const [loadingResponses, setLoadingResponses] = useState(false);
   const { toast } = useToast();
   const { getResponsesByCatalog } = useCustomerResponses();
+  const responsesRef = useRef<HTMLDivElement>(null);
 
   const copyShareLink = (link: string) => {
     const fullLink = `${window.location.origin}/catalog/${link}`;
@@ -108,6 +111,17 @@ export const CatalogManagement = ({ catalogs, onCatalogDeleted }: CatalogManagem
     try {
       const responses = await getResponsesByCatalog(catalogId);
       setCatalogResponses(responses);
+      
+      // Auto-scroll to responses section after a short delay
+      setTimeout(() => {
+        if (responsesRef.current) {
+          responsesRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 100);
+      
     } catch (error) {
       console.error('Error loading responses:', error);
       toast({
@@ -127,10 +141,10 @@ export const CatalogManagement = ({ catalogs, onCatalogDeleted }: CatalogManagem
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mt-4">
         <h3 className="text-2xl font-bold text-foreground">Catalog Management</h3>
         <Badge variant="secondary" className="text-sm">
-          {catalogs.length} Total Catalogs
+          {catalogs.length} Catalogs
         </Badge>
       </div>
 
@@ -143,94 +157,211 @@ export const CatalogManagement = ({ catalogs, onCatalogDeleted }: CatalogManagem
         </Card>
       ) : (
         <div className="space-y-6">
-          {/* Catalogs Overview Table */}
-          <Card>
+          {/* Desktop Table View */}
+          <Card className="hidden md:block">
             <CardHeader>
               <CardTitle>All Shared Catalogs</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Catalog Name</TableHead>
-                    <TableHead>Brand</TableHead>
-                    <TableHead>Products</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {catalogs.map(catalog => (
-                    <TableRow key={catalog.id}>
-                      <TableCell className="font-medium">{catalog.name}</TableCell>
-                      <TableCell>{catalog.brand_name}</TableCell>
-                      <TableCell>{catalog.products.length}</TableCell>
-                      <TableCell>
-                        {new Date(catalog.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2 flex-wrap">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => copyShareLink(catalog.shareable_link)}
-                          >
-                            <Share className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openCatalog(catalog.shareable_link)}
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => loadCatalogResponses(catalog.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="outline">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Catalog</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "{catalog.name}"? This will also delete all customer responses. This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteCatalog(catalog.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[150px]">Catalog Name</TableHead>
+                      <TableHead className="min-w-[120px]">Brand</TableHead>
+                      <TableHead className="min-w-[80px]">Products</TableHead>
+                      <TableHead className="min-w-[100px]">Created</TableHead>
+                      <TableHead className="min-w-[200px]">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {catalogs.map(catalog => (
+                      <TableRow 
+                        key={catalog.id} 
+                        className={`transition-colors ${
+                          selectedCatalogId === catalog.id 
+                            ? 'bg-primary/10 border-l-4 border-l-primary' 
+                            : ''
+                        }`}
+                      >
+                        <TableCell className="font-medium">{catalog.name}</TableCell>
+                        <TableCell>{catalog.brand_name}</TableCell>
+                        <TableCell>{catalog.products.length}</TableCell>
+                        <TableCell>
+                          {new Date(catalog.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyShareLink(catalog.shareable_link)}
+                              className="text-xs"
+                            >
+                              <Share className="h-3 w-3 mr-1" />
+                              Share
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openCatalog(catalog.shareable_link)}
+                              className="text-xs"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => loadCatalogResponses(catalog.id)}
+                              className={`text-xs ${
+                                selectedCatalogId === catalog.id 
+                                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                  : ''
+                              }`}
+                            >
+                              <Users className="h-3 w-3 mr-1" />
+                              Responses
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="text-xs">
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Catalog</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{catalog.name}"? This will also delete all customer responses. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteCatalog(catalog.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
 
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            <h4 className="text-lg font-semibold">All Shared Catalogs</h4>
+            {catalogs.map(catalog => (
+              <Card 
+                key={catalog.id} 
+                className={`p-4 transition-all ${
+                  selectedCatalogId === catalog.id 
+                    ? 'ring-2 ring-primary bg-primary/5' 
+                    : ''
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{catalog.name}</h3>
+                      <p className="text-sm text-muted-foreground">{catalog.brand_name}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {catalog.products.length} products
+                    </Badge>
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground">
+                    Created: {new Date(catalog.created_at).toLocaleDateString()}
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-3 pt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex flex-col items-center gap-1 h-auto py-2 px-1"
+                      onClick={() => copyShareLink(catalog.shareable_link)}
+                    >
+                      <Share className="h-4 w-4" />
+                      <span className="text-xs">Share</span>
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex flex-col items-center gap-1 h-auto py-2 px-1"
+                      onClick={() => openCatalog(catalog.shareable_link)}
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="text-xs">View</span>
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`flex flex-col items-center gap-1 h-auto py-2 px-1 ${
+                        selectedCatalogId === catalog.id 
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                          : ''
+                      }`}
+                      onClick={() => loadCatalogResponses(catalog.id)}
+                    >
+                      <Users className="h-4 w-4" />
+                      <span className="text-xs">Responses</span>
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex flex-col items-center gap-1 h-auto py-2 px-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="text-xs">Delete</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Catalog</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{catalog.name}"? This will also delete all customer responses. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteCatalog(catalog.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+
           {/* Customer Responses for Selected Catalog */}
           {selectedCatalogId && (
-            <Card>
+            <Card ref={responsesRef}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Heart className="h-5 w-5" />
-                  Customer Responses 
+                  Customer Responses for "{catalogs.find(c => c.id === selectedCatalogId)?.name}"
                   {catalogResponses.length > 0 && (
                     <Badge variant="secondary">{catalogResponses.length} responses</Badge>
                   )}

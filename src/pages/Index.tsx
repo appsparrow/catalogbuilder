@@ -20,7 +20,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-app-gradient">
       {/* Header */}
-      <header className="bg-white/70 backdrop-blur-md border-blur sticky top-0 z-50">
+      <header className="bg-white/70 backdrop-blur-md border-b md:sticky md:top-0 z-50 mx-2.5 mt-2.5 rounded-xl shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Title */}
@@ -31,9 +31,7 @@ export default function Index() {
                 className="h-10 w-10 rounded-md object-contain"
                 loading="lazy"
               />
-              <h1 className="text-xl font-bold text-brand-brown">
-                Cuzata
-              </h1>
+              <h1 className="text-xl font-bold text-brand-brown mt-2">Cuzata</h1>
             </div>
 
             {/* Desktop Navigation */}
@@ -129,6 +127,34 @@ export default function Index() {
 
       {/* Main Content */}
       <MainDashboard activeView={activeView} onViewChange={setActiveView} />
+
+      {/* Footer */}
+      <footer className="mt-8 pt-6 pb-8 border-t border-border text-center bg-white/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Custom catalogs - built by{" "}
+              <a 
+                href="https://cuzata.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                Cuzata
+              </a>
+              {" "}for{" "}
+              <a 
+                href="https://illus.in" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                Illus Design
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

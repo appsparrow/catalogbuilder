@@ -18,7 +18,8 @@ import {
   EyeOff,
   MoreVertical,
   Upload,
-  X
+  X,
+  Check
 } from "lucide-react";
 import { Product } from "@/types/catalog";
 import { EditProductModal } from "./EditProductModal";
@@ -105,7 +106,7 @@ export const ProductsLibrary = ({
       <Card 
         key={product.id} 
         className={`overflow-hidden hover:shadow-lg transition-all cursor-pointer ${
-          isSelected ? 'ring-2 ring-primary shadow-lg' : ''
+          isSelected ? 'ring-2 ring-orange-500 shadow-lg' : ''
         } ${!isActive ? 'opacity-60' : ''}`}
         onClick={() => { if (isActive) onProductSelect(product.id, !isSelected); }}
       >
@@ -114,72 +115,92 @@ export const ProductsLibrary = ({
             <img
               src={product.image_url}
               alt={product.name}
-              className="w-full h-40 sm:h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => setSelectedImage({url: product.image_url, name: product.name})}
+              className="w-full h-40 sm:h-48 object-cover hover:opacity-90 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImage({url: product.image_url, name: product.name});
+              }}
             />
-            <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
-              <Checkbox
-                checked={isSelected}
-                disabled={!isActive}
-                onCheckedChange={(checked) => {
-                  if (isActive) onProductSelect(product.id, checked as boolean);
-                }}
-                className="bg-background border-2 shadow-sm"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
             {isSelected && (
-              <div className="absolute top-2 right-12 sm:top-3 sm:right-12">
-                <Badge variant="default" className="bg-primary text-xs sm:text-sm">
+              <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
+                <Badge variant="default" className="bg-orange-500 text-white text-xs sm:text-sm">
                   Selected
                 </Badge>
               </div>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-2 right-2 sm:top-3 sm:right-3 h-8 w-8 p-0 bg-white/90 hover:bg-white"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={(e) => {
-                  e.stopPropagation();
-                  handleEditProduct(product);
-                }}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Product
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleStatus(product.id, isActive);
-                }}>
-                  {isActive ? (
-                    <>
-                      <EyeOff className="h-4 w-4 mr-2" />
-                      Make Inactive
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Make Active
-                    </>
-                  )}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 bg-white/90 hover:bg-white"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditProduct(product);
+                  }}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Product
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleStatus(product.id, isActive);
+                  }}>
+                    {isActive ? (
+                      <>
+                        <EyeOff className="h-4 w-4 mr-2" />
+                        Make Inactive
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Make Active
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
           
           <div className="p-3 sm:p-4 space-y-2">
             <h3 className="font-semibold truncate text-sm sm:text-base">{product.name}</h3>
             <p className="text-xs sm:text-sm text-muted-foreground">{product.code}</p>
-            <div className="flex gap-1 sm:gap-2 flex-wrap">
-              <Badge variant="secondary" className="text-xs">{product.category}</Badge>
-              <Badge variant="outline" className="text-xs">{product.supplier}</Badge>
+            <div className="space-y-2">
+              <div className="flex gap-1 sm:gap-2 flex-wrap">
+                <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+              </div>
+              <div className="flex gap-1 sm:gap-2 flex-wrap">
+                <Badge variant="outline" className="text-xs">{product.supplier}</Badge>
+              </div>
+            </div>
+            <div className="flex justify-end pt-2">
+              <div 
+                className={`w-full h-10 rounded-lg border-2 cursor-pointer transition-all flex items-center justify-center ${
+                  isSelected 
+                    ? 'bg-orange-500 border-orange-500 text-white' 
+                    : 'bg-white border-gray-300 hover:border-orange-400'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isActive) onProductSelect(product.id, !isSelected);
+                }}
+              >
+                {isSelected ? (
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4" />
+                    <span className="text-sm font-medium">Selected</span>
+                  </div>
+                ) : (
+                  <span className="text-sm text-gray-600">Click to Select</span>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -195,7 +216,7 @@ export const ProductsLibrary = ({
       <Card 
         key={product.id} 
         className={`hover:shadow-lg transition-all cursor-pointer ${
-          isSelected ? 'ring-2 ring-primary shadow-lg' : ''
+          isSelected ? 'ring-2 ring-orange-500 shadow-lg' : ''
         } ${!isActive ? 'opacity-60' : ''}`}
         onClick={() => { if (isActive) onProductSelect(product.id, !isSelected); }}
       >
@@ -205,8 +226,11 @@ export const ProductsLibrary = ({
               <img
                 src={product.image_url}
                 alt={product.name}
-                className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => setSelectedImage({url: product.image_url, name: product.name})}
+                className="w-16 h-16 object-cover rounded-lg hover:opacity-90 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage({url: product.image_url, name: product.name});
+                }}
               />
             </div>
             <div className="flex-1 min-w-0">
@@ -217,21 +241,36 @@ export const ProductsLibrary = ({
                 )}
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground mb-2">{product.code}</p>
-              <div className="flex gap-2">
-                <Badge variant="secondary" className="text-xs truncate max-w-20">{product.category}</Badge>
-                <Badge variant="outline" className="text-xs truncate max-w-20">{product.supplier}</Badge>
+              <div className="space-y-1">
+                <div className="flex gap-2">
+                  <Badge variant="secondary" className="text-xs truncate max-w-40">{product.category}</Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-xs truncate max-w-20">{product.supplier}</Badge>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Checkbox
-                checked={isSelected}
-                disabled={!isActive}
-                onCheckedChange={(checked) => {
-                  if (isActive) onProductSelect(product.id, checked as boolean);
+              <div 
+                className={`w-24 h-8 rounded-lg border-2 cursor-pointer transition-all flex items-center justify-center ${
+                  isSelected 
+                    ? 'bg-orange-500 border-orange-500 text-white' 
+                    : 'bg-white border-gray-300 hover:border-orange-400'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isActive) onProductSelect(product.id, !isSelected);
                 }}
-                className="bg-background border-2 shadow-sm h-4 w-4"
-                onClick={(e) => e.stopPropagation()}
-              />
+              >
+                {isSelected ? (
+                  <div className="flex items-center gap-1">
+                    <Check className="h-3 w-3" />
+                    <span className="text-xs font-medium">Selected</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-600">Select</span>
+                )}
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -279,7 +318,7 @@ export const ProductsLibrary = ({
   return (
     <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-6 sm:mb-8 mt-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Products Library</h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1">
@@ -290,7 +329,7 @@ export const ProductsLibrary = ({
 
       {/* Sticky Create Catalog Button */}
       {selectedProducts.length > 0 && (
-        <div className="sticky top-4 z-10 mb-6">
+        <div className="sticky top-4 z-10 mb-6 mt-4">
           <div className="flex justify-end">
             <Button onClick={onCreateCatalog} className="flex items-center gap-2 shadow-lg">
               <FileText className="h-4 w-4" />

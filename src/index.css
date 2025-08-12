@@ -156,6 +156,26 @@ All colors MUST be HSL.
     p, span, div {
       -webkit-text-size-adjust: 100%;
     }
+    
+    /* Ensure sticky header works on mobile */
+    header {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 50 !important;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    
+    /* Fix iOS Safari sticky issues */
+    @supports (-webkit-touch-callout: none) {
+      header {
+        position: -webkit-sticky !important;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+    }
   }
 }
 

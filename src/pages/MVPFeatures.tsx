@@ -115,7 +115,7 @@ const MVPFeatures = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40">
+      <header className="bg-white/80 backdrop-blur-sm border-b md:sticky md:top-0 z-40 mx-2.5 mt-2.5 rounded-xl shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2 sm:gap-3">
@@ -124,7 +124,7 @@ const MVPFeatures = () => {
                 alt="ILLUS DECOR Logo" 
                 className="h-6 w-6 sm:h-8 sm:w-8"
               />
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-2">
                 ILLUS DECOR
               </h1>
             </Link>
@@ -299,36 +299,28 @@ const MVPFeatures = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-8 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center">
-            <p className="text-sm mb-2">
+      <footer className="mt-8 pt-6 pb-8 border-t border-border text-center bg-white/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Custom catalogs - built by{" "}
               <a 
-                href="https://lovable.dev/invite/7ea3252a-98b9-4671-ba20-2292bced6e46" 
+                href="https://cuzata.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                className="text-primary hover:underline font-medium"
               >
-                <img 
-                  src="/lovable-uploads/ad9485b6-d796-4b14-a5b2-0701ba070683.png" 
-                  alt="Lovable" 
-                  className="h-4 w-4 rounded"
-                />
-                Lovable app
-              </a>{" "}
-              built by human at{" "}
-                              <span className="text-white font-medium">ILLUS DECOR</span> for{" "}
+                Cuzata
+              </a>
+              {" "}for{" "}
               <a 
                 href="https://illus.in" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-white font-medium hover:underline"
+                className="text-primary hover:underline font-medium"
               >
-                Illus Decor
+                Illus Design
               </a>
-            </p>
-            <p className="text-xs opacity-75">
-              © 2024 ILLUS DECOR. All rights reserved.
             </p>
           </div>
         </div>

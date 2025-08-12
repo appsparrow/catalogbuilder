@@ -193,7 +193,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
       {/* Simple Header for Upload View */}
       {currentView === 'upload' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <div className="mb-8">
+          <div className="mb-8 mt-4">
             <h1 className="text-2xl font-bold text-center mb-2">Upload Products</h1>
             <p className="text-muted-foreground text-center mb-6">Upload product images and add details to build your catalog</p>
           </div>

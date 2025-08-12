@@ -104,7 +104,7 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 mt-4">
         <Button variant="outline" size="icon" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
