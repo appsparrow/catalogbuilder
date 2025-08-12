@@ -23,6 +23,9 @@ export const useCatalogs = () => {
 
   const fetchCatalogs = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const { data: catalogsData, error } = await supabase
         .from('catalogs')
         .select(`
@@ -31,6 +34,7 @@ export const useCatalogs = () => {
             products (*)
           )
         `)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -64,6 +68,9 @@ export const useCatalogs = () => {
       // Generate unique shareable link
       const shareableLink = `catalog-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       // Create catalog
       const { data: catalog, error: catalogError } = await supabase
         .from('catalogs')
@@ -72,6 +79,7 @@ export const useCatalogs = () => {
           brand_name: catalogData.brand_name,
           logo_url: catalogData.logo_url,
           shareable_link: shareableLink,
+          user_id: user.id,
         }])
         .select()
         .single();

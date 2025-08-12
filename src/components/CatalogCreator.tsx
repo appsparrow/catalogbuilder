@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Share2, ArrowLeft, Upload, X } from "lucide-react";
 import { Product } from "@/types/catalog";
 import { useToast } from "@/hooks/use-toast";
 import { useLogoUpload } from "@/hooks/useLogoUpload";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 
 interface CatalogCreatorProps {
   selectedProducts: Product[];
@@ -29,10 +30,21 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
   const [brandName, setBrandName] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string>("/logo-IllusDecor.png");
+  const [logoPreview, setLogoPreview] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
   const { uploadLogo } = useLogoUpload();
+  const { profile } = useCompanyProfile();
+
+  // Pre-populate with company profile data
+  useEffect(() => {
+    if (profile) {
+      setBrandName(profile.company_name);
+      if (profile.logo_url) {
+        setLogoPreview(profile.logo_url);
+      }
+    }
+  }, [profile]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,7 +74,7 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
 
     setIsCreating(true);
     try {
-      let logoUrl = "/logo-IllusDecor.png"; // Default to ILLUS DECOR logo
+      let logoUrl = logoPreview || (profile?.logo_url ? profile.logo_url : "/logo-IllusDecor.png");
       if (logoFile) {
         logoUrl = await uploadLogo(logoFile, brandName);
       }

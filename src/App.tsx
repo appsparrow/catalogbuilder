@@ -3,37 +3,50 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import CatalogPage from "./pages/CatalogPage";
 import NotFound from "./pages/NotFound";
 import MVPFeatures from "./pages/MVPFeatures";
-import { AuthPopup } from "./components/AuthPopup";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is already authenticated (for demo purposes, you might want to use localStorage)
   useEffect(() => {
-    // For demo purposes, we'll always show the auth popup
-    // In production, you might check localStorage or session storage
-    setIsAuthenticated(false);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-  };
-
-  if (!isAuthenticated) {
+  if (isLoading) {
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AuthPopup isOpen={true} onSuccess={handleAuthSuccess} />
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
         </TooltipProvider>
       </QueryClientProvider>
     );
@@ -46,10 +59,28 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            {/* Public routes */}
             <Route path="/catalog/:shareableLink" element={<CatalogPage />} />
-            <Route path="/features" element={<MVPFeatures />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            
+            {/* Auth routes */}
+            <Route 
+              path="/auth" 
+              element={user ? <Navigate to="/" replace /> : <Auth />} 
+            />
+            
+            {/* Protected routes */}
+            <Route 
+              path="/" 
+              element={user ? <Index /> : <Navigate to="/auth" replace />} 
+            />
+            <Route 
+              path="/features" 
+              element={user ? <MVPFeatures /> : <Navigate to="/auth" replace />} 
+            />
+            
+            <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
+            
+            {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
