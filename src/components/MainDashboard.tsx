@@ -41,7 +41,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   
   const { products, addProduct, uploadImage, updateProduct, updateProductStatus, refetch } = useProducts();
   const { catalogs, createCatalog, refetch: refetchCatalogs } = useCatalogs();
-  const { updateUnprocessedProduct } = useUnprocessedProducts();
+  const { updateUnprocessedProduct, moveToProducts } = useUnprocessedProducts();
   const { toast } = useToast();
 
   // Sync products from hook to local state
@@ -103,11 +103,18 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
     try {
       for (const image of images) {
         if (image.details) {
-          // If we have a file, upload it. Otherwise, use the existing preview URL
-          let imageUrl = image.preview; // Use existing URL from database
-          
-          if (image.file) {
-            // Only upload if we have the original file
+          // Prefer moving from unprocessed to products (single object) if we have an unprocessed R2 URL
+          // Fallback to uploading from file if available
+          let imageUrl = image.preview;
+          if (image.unprocessedId && image.preview.includes('http')) {
+            try {
+              imageUrl = await moveToProducts(image.preview, image.details.code);
+            } catch (e) {
+              if (image.file) {
+                imageUrl = await uploadImage(image.file, image.details.code);
+              }
+            }
+          } else if (image.file) {
             imageUrl = await uploadImage(image.file, image.details.code);
           }
           

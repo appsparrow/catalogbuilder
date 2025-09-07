@@ -154,6 +154,37 @@ export const useUnprocessedProducts = () => {
     }
   };
 
+  const moveToProducts = async (unprocessedUrl: string, productCode: string) => {
+    try {
+      // Translate public URL to R2 object key
+      const base = import.meta.env.VITE_R2_PUBLIC_BASE_URL || '';
+      const basePrefix = (base as string).replace(/\/$/, '');
+      const key = unprocessedUrl.replace(`${basePrefix}/`, '');
+      const fileExt = unprocessedUrl.split('.').pop();
+      const toKey = `products/${productCode}_${Date.now()}.${fileExt}`;
+
+      const res = await fetch('/api/move-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromKey: key, toKey }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Move failed');
+      }
+      const { url } = await res.json();
+      return url as string;
+    } catch (error) {
+      console.error('Error moving image to products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to move image",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   // Fetch data on mount
   useEffect(() => {
     fetchUnprocessedProducts();
@@ -166,6 +197,7 @@ export const useUnprocessedProducts = () => {
     updateUnprocessedProduct,
     removeUnprocessedProduct,
     uploadUnprocessedImage,
+    moveToProducts,
     refetch: fetchUnprocessedProducts
   };
 };

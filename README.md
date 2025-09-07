@@ -92,7 +92,7 @@ Images are uploaded to Cloudflare R2 via a Cloudflare Pages Function and served 
 x
 - Function: `functions/api/upload-image.ts`
 - Binding: `R2_BUCKET` (R2 bucket binding)
-- Env var: `R2_PUBLIC_BASE_URL` (public base URL to your bucket; no trailing slash)
+- Env var: `https://pub-7c230797c7d1464c96a7c30a40dc8a4a.r2.dev` (public base URL to your bucket; no trailing slash)
 
 Configure in Cloudflare Pages → Project → Settings:
 1. Bindings → R2 → Add binding named `R2_BUCKET` pointing to your bucket
