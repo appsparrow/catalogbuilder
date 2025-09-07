@@ -1,27 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { toast } from 'sonner';
 import { FileText, Share2, MessageSquare, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [pinDialogOpen, setPinDialogOpen] = useState(false);
-  const [pin, setPin] = useState('');
-
   const handleGetStarted = () => {
-    setPinDialogOpen(true);
-  };
-
-  const handlePinSubmit = () => {
-    if (pin === import.meta.env.VITE_APP_ACCESS_PIN) {
-      navigate('/app');
-    } else {
-      toast.error('Invalid PIN');
-    }
+    navigate('/login');
   };
 
   return (
@@ -241,29 +227,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* PIN Dialog */}
-      <Dialog open={pinDialogOpen} onOpenChange={setPinDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Enter Access PIN</DialogTitle>
-            <DialogDescription>
-              Please enter the access PIN to continue to the application.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center space-x-2">
-            <Input
-              type="password"
-              placeholder="Enter PIN"
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handlePinSubmit()}
-            />
-            <Button onClick={handlePinSubmit}>
-              Continue
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Removed PIN dialog; using Supabase auth on /login */}
     </div>
   );
 }

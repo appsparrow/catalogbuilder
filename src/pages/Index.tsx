@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { MainDashboard } from "@/components/MainDashboard";
+import { UserMenu } from "@/components/UserMenu";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
@@ -71,15 +72,18 @@ export default function Index() {
               </Button>
             </nav>
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={toggleMobileMenu}
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </Button>
+            {/* User Menu and Mobile Menu Button */}
+            <div className="flex items-center gap-2">
+              <UserMenu />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={toggleMobileMenu}
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </Button>
+            </div>
           </div>
 
           {/* Mobile Navigation */}

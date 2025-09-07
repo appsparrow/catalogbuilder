@@ -131,14 +131,24 @@ export const useUnprocessedProducts = () => {
       form.append('prefix', 'unprocessed');
       form.append('filename', filename);
 
-      const response = await fetch('/api/upload-image', {
+      const uploadEndpoint = (import.meta as any).env?.VITE_UPLOAD_ENDPOINT || '/api/upload-image';
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         body: form,
       });
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || 'Upload failed');
+        let message = 'Upload failed';
+        try {
+          const errJson = await response.json();
+          message = errJson?.error || message;
+        } catch {
+          try {
+            const errText = await response.text();
+            message = `${message} (${response.status}): ${errText}`;
+          } catch {}
+        }
+        throw new Error(message);
       }
 
       const { url } = await response.json();
@@ -157,20 +167,30 @@ export const useUnprocessedProducts = () => {
   const moveToProducts = async (unprocessedUrl: string, productCode: string) => {
     try {
       // Translate public URL to R2 object key
-      const base = import.meta.env.VITE_R2_PUBLIC_BASE_URL || '';
+      const base = (import.meta as any).env?.VITE_R2_PUBLIC_BASE_URL || '';
       const basePrefix = (base as string).replace(/\/$/, '');
       const key = unprocessedUrl.replace(`${basePrefix}/`, '');
       const fileExt = unprocessedUrl.split('.').pop();
       const toKey = `products/${productCode}_${Date.now()}.${fileExt}`;
 
-      const res = await fetch('/api/move-image', {
+      const moveEndpoint = (import.meta as any).env?.VITE_MOVE_ENDPOINT || '/api/move-image';
+      const res = await fetch(moveEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fromKey: key, toKey }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Move failed');
+        let message = 'Move failed';
+        try {
+          const errJson = await res.json();
+          message = errJson?.error || message;
+        } catch {
+          try {
+            const errText = await res.text();
+            message = `${message} (${res.status}): ${errText}`;
+          } catch {}
+        }
+        throw new Error(message);
       }
       const { url } = await res.json();
       return url as string;

@@ -14,14 +14,24 @@ export const useLogoUpload = () => {
       form.append('prefix', 'logos');
       form.append('filename', filename);
 
-      const response = await fetch('/api/upload-image', {
+      const uploadEndpoint = (import.meta as any).env?.VITE_UPLOAD_ENDPOINT || '/api/upload-image';
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         body: form,
       });
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || 'Upload failed');
+        let message = 'Upload failed';
+        try {
+          const errJson = await response.json();
+          message = errJson?.error || message;
+        } catch {
+          try {
+            const errText = await response.text();
+            message = `${message} (${response.status}): ${errText}`;
+          } catch {}
+        }
+        throw new Error(message);
       }
 
       const { url } = await response.json();
