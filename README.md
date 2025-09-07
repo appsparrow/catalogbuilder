@@ -86,6 +86,58 @@ npm run build:deploy
 ./build.sh
 ```
 
+### Cloudflare R2 image storage
+
+Images are uploaded to Cloudflare R2 via a Cloudflare Pages Function and served through Cloudflare CDN (zero egress from Supabase):
+x
+- Function: `functions/api/upload-image.ts`
+- Binding: `R2_BUCKET` (R2 bucket binding)
+- Env var: `R2_PUBLIC_BASE_URL` (public base URL to your bucket; no trailing slash)
+
+Configure in Cloudflare Pages → Project → Settings:
+1. Bindings → R2 → Add binding named `R2_BUCKET` pointing to your bucket
+2. Environment variables → add `R2_PUBLIC_BASE_URL` with your public bucket URL or CDN hostname
+
+The app posts multipart/form-data to `/api/upload-image` and stores returned URLs in Supabase tables.
+
+### Step-by-step: Set up Cloudflare R2 with this app
+
+1) Create an R2 bucket
+   - Cloudflare Dashboard → R2 → Create bucket
+   - Name example: `catalogbuilder`
+
+2) Make objects publicly readable
+   - Option A (simple): Enable Public Bucket or add an R2 Custom Domain for the bucket
+   - Copy your public base URL (no trailing slash), e.g. `https://<bucket>.<accountid>.r2.cloudflarestorage.com` or `https://cdn.example.com`
+
+3) Bind R2 to your Cloudflare Pages project
+   - Cloudflare Dashboard → Pages → your project → Settings → Environment variables and Bindings
+   - R2 bindings → Add binding
+     - Variable name: `R2_BUCKET`
+     - Bucket: select your bucket from step 1
+
+4) Add environment variable for public URL
+   - Same page → Environment variables → Add variable
+     - Name: `R2_PUBLIC_BASE_URL`
+     - Value: the public base URL from step 2 (no trailing slash)
+
+5) Deploy the app
+   - Push these repo changes or trigger a new build to ensure the Pages Function is deployed
+   - The function lives at `functions/api/upload-image.ts`
+
+6) Verify uploads work
+   - Open your deployed preview URL
+   - Test image upload in the UI (products, bulk, logo)
+   - In Supabase, new rows should reference `image_url` pointing to your R2 domain
+
+7) (Optional) Migrate existing images from Supabase to R2
+   - Export `products.image_url` and any other image fields from Supabase
+   - For each URL: download the file and re-upload via `/api/upload-image` (prefix `products/`), or upload directly using the R2 S3-compatible API
+   - Update the corresponding DB rows with the new R2 URLs
+
+Notes
+- Local dev via `npm run dev` does not run Cloudflare Functions. To test the `/api/upload-image` endpoint locally, use a Cloudflare preview deployment or run a local Pages dev environment with Wrangler.
+
 ## 🔧 Troubleshooting Build Issues
 
 If you encounter Rollup/npm dependency errors during build:

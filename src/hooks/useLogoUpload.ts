@@ -7,20 +7,25 @@ export const useLogoUpload = () => {
   const uploadLogo = async (file: File, brandName: string) => {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `logo_${brandName.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
-      const filePath = `logos/${fileName}`;
+      const filename = `logo_${brandName.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
+      const form = new FormData();
+      form.append('file', file);
+      form.append('prefix', 'logos');
+      form.append('filename', filename);
 
-      if (uploadError) throw uploadError;
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: form,
+      });
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Upload failed');
+      }
 
-      return publicUrl;
+      const { url } = await response.json();
+      return url as string;
     } catch (error) {
       console.error('Error uploading logo:', error);
       toast({
