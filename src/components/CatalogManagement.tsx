@@ -84,7 +84,10 @@ export const CatalogManagement = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">All Shared Catalogs</h2>
+      <div className="mb-8 mt-4">
+        <h1 className="text-2xl font-bold text-center mb-2">All Shared Catalogs</h1>
+        <p className="text-muted-foreground text-center mb-6">Manage and share your product catalogs with customers</p>
+      </div>
       
       <div className="space-y-4">
         {catalogs.map(catalog => (

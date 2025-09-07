@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Share2, ArrowLeft, Upload, X } from "lucide-react";
+import { Share2, ArrowLeft, Upload, X, Lock } from "lucide-react";
 import { Product } from "@/types/catalog";
 import { useToast } from "@/hooks/use-toast";
 import { useLogoUpload } from "@/hooks/useLogoUpload";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface CatalogCreatorProps {
   selectedProducts: Product[];
@@ -33,6 +34,7 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
   const { uploadLogo } = useLogoUpload();
+  const { canCreateCatalog, usage, currentPlan } = useSubscription();
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,6 +57,16 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
       toast({
         title: "Missing information",
         description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check catalog creation limit
+    if (!canCreateCatalog()) {
+      toast({
+        title: "Catalog limit reached",
+        description: `You've reached your catalog limit (${usage?.catalogCount || 0}/${usage?.maxCatalogs || 1}). Upgrade to Starter plan to create up to 5 catalogs.`,
         variant: "destructive"
       });
       return;
@@ -226,12 +238,27 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
 
             <Button 
               onClick={handleCreateCatalog}
-              disabled={isCreating || !catalogName || !brandName || !customerName}
+              disabled={isCreating || !catalogName || !brandName || !customerName || !canCreateCatalog()}
               className="w-full"
             >
-              <Share2 className="mr-2 h-4 w-4" />
-              {isCreating ? 'Creating...' : 'Create & Share Catalog'}
+              {!canCreateCatalog() ? (
+                <>
+                  <Lock className="mr-2 h-4 w-4" />
+                  Catalog Limit Reached
+                </>
+              ) : (
+                <>
+                  <Share2 className="mr-2 h-4 w-4" />
+                  {isCreating ? 'Creating...' : 'Create & Share Catalog'}
+                </>
+              )}
             </Button>
+            
+            {usage && (
+              <div className="text-center text-sm text-muted-foreground mt-2">
+                {usage.catalogCount} / {usage.maxCatalogs} catalogs used
+              </div>
+            )}
           </CardContent>
         </Card>
 

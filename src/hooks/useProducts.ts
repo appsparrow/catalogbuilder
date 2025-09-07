@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { validateImageFile } from '@/utils/imageUtils';
+import { useAuth } from './useAuth';
 
 export interface Product {
   id: string;
@@ -19,12 +21,14 @@ export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .eq('user_id', user?.id || '')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -54,7 +58,8 @@ export const useProducts = () => {
       const { isActive, ...rest } = product as any;
       const dbProduct = {
         ...rest,
-        isactive: isActive ?? true
+        isactive: isActive ?? true,
+        user_id: user?.id
       };
       
       const { data, error } = await supabase
@@ -91,6 +96,12 @@ export const useProducts = () => {
 
   const uploadImage = async (file: File, productCode: string) => {
     try {
+      // Validate file before upload
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
       const fileExt = file.name.split('.').pop();
       const filename = `${productCode}_${Date.now()}.${fileExt}`;
 

@@ -4,8 +4,10 @@ import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, X, Edit, Check, ArrowRight } from "lucide-react";
+import { Upload, X, Edit, Check, ArrowRight, Lock } from "lucide-react";
 import { useUnprocessedProducts, UnprocessedProduct } from "@/hooks/useUnprocessedProducts";
+import { useSubscription } from "@/hooks/useSubscription";
+import { getThumbnailUrl } from "@/utils/imageUtils";
 
 interface UploadedImage {
   id: string;
@@ -38,6 +40,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
     uploadUnprocessedImage,
     loading 
   } = useUnprocessedProducts();
+  const { canUploadImage, usage, currentPlan } = useSubscription();
 
   // Sync unprocessed products from database to local state
   useEffect(() => {
@@ -58,6 +61,21 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
   }, [unprocessedProducts]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    // Check if user can upload more images
+    if (!canUploadImage()) {
+      alert(`You've reached your image limit (${usage?.maxImages || 50}). Upgrade to Starter plan to upload up to 1000 images.`);
+      return;
+    }
+
+    // Check if adding these files would exceed the limit
+    const currentImageCount = usage?.imageCount || 0;
+    const remainingSlots = (usage?.maxImages || 50) - currentImageCount;
+    
+    if (acceptedFiles.length > remainingSlots) {
+      alert(`You can only upload ${remainingSlots} more images. Upgrade to Starter plan for more storage.`);
+      return;
+    }
+
     const uploadPromises = acceptedFiles.map(async (file) => {
       try {
         // Upload to storage and save to database
@@ -76,7 +94,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
     });
     
     await Promise.all(uploadPromises);
-  }, [uploadUnprocessedImage, addUnprocessedProduct]);
+  }, [uploadUnprocessedImage, addUnprocessedProduct, canUploadImage, usage]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -154,20 +172,34 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
             className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center cursor-pointer transition-colors ${
               isDragActive 
                 ? 'border-primary bg-primary/5' 
-                : 'border-muted-foreground/25 hover:border-primary hover:bg-muted/50'
+                : canUploadImage()
+                  ? 'border-muted-foreground/25 hover:border-primary hover:bg-muted/50'
+                  : 'border-red-300 bg-red-50 cursor-not-allowed'
             }`}
           >
-            <input {...getInputProps()} />
-            <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
+            <input {...getInputProps()} disabled={!canUploadImage()} />
+            {canUploadImage() ? (
+              <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4" />
+            ) : (
+              <Lock className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-red-500 mb-3 sm:mb-4" />
+            )}
             <h3 className="text-base sm:text-lg font-semibold mb-2">Upload Products</h3>
             <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-              {isDragActive
-                ? "Drop the images here..."
-                : "Drag & drop images here, or click to select files"}
+              {!canUploadImage() 
+                ? `Image limit reached (${usage?.imageCount || 0}/${usage?.maxImages || 50}). Upgrade to Starter plan for more storage.`
+                : isDragActive
+                  ? "Drop the images here..."
+                  : "Drag & drop images here, or click to select files"
+              }
             </p>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Supports: JPEG, PNG, WebP
             </p>
+            {usage && (
+              <div className="mt-4 text-xs text-muted-foreground">
+                {usage.imageCount} / {usage.maxImages} images used
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -185,7 +217,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
                 <CardContent className="p-0">
                   <div className="relative">
                     <img
-                      src={image.preview}
+                      src={getThumbnailUrl(image.preview)}
                       alt="Product"
                       className="w-full h-24 sm:h-32 object-cover"
                     />
@@ -244,7 +276,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
                 <CardContent className="p-0">
                   <div className="relative">
                     <img
-                      src={image.preview}
+                      src={getThumbnailUrl(image.preview)}
                       alt="Product"
                       className="w-full h-24 sm:h-32 object-cover"
                     />
@@ -291,7 +323,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
                 <CardContent className="p-0">
                   <div className="relative">
                     <img
-                      src={image.preview}
+                      src={getThumbnailUrl(image.preview)}
                       alt="Product"
                       className="w-full h-24 sm:h-32 object-cover opacity-75"
                     />
@@ -339,7 +371,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
                 <CardContent className="p-0">
                   <div className="relative">
                     <img
-                      src={image.preview}
+                      src={getThumbnailUrl(image.preview)}
                       alt="Product"
                       className="w-full h-24 sm:h-32 object-cover"
                     />
@@ -377,7 +409,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
                 <CardContent className="p-0">
                   <div className="relative">
                     <img
-                      src={image.preview}
+                      src={getThumbnailUrl(image.preview)}
                       alt="Product"
                       className="w-full h-24 sm:h-32 object-cover opacity-75"
                     />

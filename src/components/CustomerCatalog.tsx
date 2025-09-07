@@ -8,6 +8,7 @@ import { Heart, Search, Filter, Loader2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CatalogWithProducts } from "@/types/catalog";
 import { useCustomerResponses } from "@/hooks/useCustomerResponses";
+import { getThumbnailUrl } from "@/utils/imageUtils";
 
 interface CustomerCatalogProps {
   catalog?: CatalogWithProducts;
@@ -270,7 +271,7 @@ export const CustomerCatalog = ({ catalog, onResponseSubmit }: CustomerCatalogPr
               <CardContent className="p-0">
                 <div className="relative aspect-square">
                   <img
-                    src={product.image_url}
+                    src={getThumbnailUrl(product.image_url)}
                     alt={product.name}
                     className="w-full h-full object-cover cursor-zoom-in"
                     onClick={(e) => {

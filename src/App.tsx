@@ -3,6 +3,7 @@ import Index from './pages/Index';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
+import Billing from './pages/Billing';
 import Research from './pages/Research';
 import MVPFeatures from './pages/MVPFeatures';
 import NotFound from './pages/NotFound';
@@ -22,6 +23,7 @@ function App() {
           <Route path="/research" element={<Research />} />
           <Route path="/app" element={loading ? null : (user ? <Index /> : <Navigate to="/login" replace />)} />
           <Route path="/settings" element={loading ? null : (user ? <Settings /> : <Navigate to="/login" replace />)} />
+          <Route path="/billing" element={loading ? null : (user ? <Billing /> : <Navigate to="/login" replace />)} />
           <Route path="/features" element={<MVPFeatures />} />
           <Route path="/catalog/:shareableLink" element={<CatalogPage />} />
           <Route path="*" element={<NotFound />} />

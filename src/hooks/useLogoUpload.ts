@@ -1,11 +1,18 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { validateImageFile } from '@/utils/imageUtils';
 
 export const useLogoUpload = () => {
   const { toast } = useToast();
 
   const uploadLogo = async (file: File, brandName: string) => {
     try {
+      // Validate file before upload
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
       const fileExt = file.name.split('.').pop();
       const filename = `logo_${brandName.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
 

@@ -100,6 +100,42 @@ Configure in Cloudflare Pages → Project → Settings:
 
 The app posts multipart/form-data to `/api/upload-image` and stores returned URLs in Supabase tables.
 
+### Subscription Plans
+
+**Free Plan**: $0/month
+- 50 images
+- 5 catalogs
+- Basic features
+
+**Starter Plan**: $10/month
+- 1000 images
+- 25 catalogs
+- Advanced features
+- Priority support
+
+### Stripe Setup
+
+1. Run the setup script:
+   ```bash
+   STRIPE_SECRET_KEY=your_key node scripts/setup-stripe-plans.js
+   ```
+
+2. Add environment variables to Cloudflare Pages:
+   - `STRIPE_SECRET_KEY`: Your Stripe secret key
+
+3. Deploy and test the billing flow!
+
+### Professional Billing Page
+
+The billing page now features:
+- **Dark theme** with professional design
+- **Side-by-side plan comparison**
+- **Usage tracking** with progress bars
+- **Test card integration** for easy Stripe testing
+- **Clean, modern UI** similar to industry standards
+
+See `STRIPE_TESTING.md` for detailed testing instructions.
+
 ### Step-by-step: Set up Cloudflare R2 with this app
 
 1) Create an R2 bucket

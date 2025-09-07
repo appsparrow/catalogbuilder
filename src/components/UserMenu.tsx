@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, Settings, LogOut, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const UserMenu = () => {
@@ -21,6 +21,10 @@ export const UserMenu = () => {
 
   const handleSettings = () => {
     navigate('/settings');
+  };
+
+  const handleBilling = () => {
+    navigate('/billing');
   };
 
   if (!user) return null;
@@ -42,6 +46,10 @@ export const UserMenu = () => {
         <DropdownMenuItem onClick={handleSettings}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleBilling}>
+          <CreditCard className="mr-2 h-4 w-4" />
+          <span>Billing</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

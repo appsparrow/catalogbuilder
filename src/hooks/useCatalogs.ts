@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from './useProducts';
+import { useAuth } from './useAuth';
 
 export interface Catalog {
   id: string;
@@ -20,6 +21,7 @@ export const useCatalogs = () => {
   const [catalogs, setCatalogs] = useState<CatalogWithProducts[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchCatalogs = async () => {
     try {
@@ -31,6 +33,7 @@ export const useCatalogs = () => {
             products (*)
           )
         `)
+        .eq('user_id', user?.id || '')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -72,6 +75,7 @@ export const useCatalogs = () => {
           brand_name: catalogData.brand_name,
           logo_url: catalogData.logo_url,
           shareable_link: shareableLink,
+          user_id: user?.id,
         }])
         .select()
         .single();

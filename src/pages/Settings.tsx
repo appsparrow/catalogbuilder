@@ -100,15 +100,8 @@ export default function Settings() {
       <header className="bg-white/70 backdrop-blur-md border-b md:sticky md:top-0 z-50 mx-2.5 mt-2.5 rounded-xl shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo and Title */}
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/app')}
-                className="mr-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
               <img
                 src="./logomark-cuzata.png"
                 alt="Cuzata logo"
@@ -117,6 +110,24 @@ export default function Settings() {
               />
               <h1 className="text-2xl font-semibold text-brown">Settings</h1>
             </div>
+
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/app')}
+                className="hover:bg-accent"
+              >
+                Back to Dashboard
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/billing')}
+                className="hover:bg-accent"
+              >
+                Billing
+              </Button>
+            </nav>
           </div>
         </div>
       </header>
