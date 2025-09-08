@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Check, Crown, Zap, Diamond, Smartphone, Github, GitBranch, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/sonner';
 
 export default function Billing() {
   const { 
@@ -17,11 +17,9 @@ export default function Billing() {
     cancelSubscription,
     getUsagePercentage 
   } = useSubscription();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
-  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [couponCode, setCouponCode] = useState('');
   const [showCouponInput, setShowCouponInput] = useState(false);
 
@@ -102,29 +100,12 @@ export default function Billing() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-        {/* Billing Toggle */}
+        {/* Monthly Only - Annual coming soon */}
         <div className="flex justify-center mb-8">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-1 flex shadow-sm">
-            <button
-              onClick={() => setBillingInterval('month')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                billingInterval === 'month'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBillingInterval('year')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                billingInterval === 'year'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Annual
-            </button>
+          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 flex shadow-sm">
+            <div className="text-sm text-muted-foreground">
+              💳 Monthly billing only - Annual plans coming soon!
+            </div>
           </div>
         </div>
 

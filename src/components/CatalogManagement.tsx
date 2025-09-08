@@ -52,6 +52,30 @@ export const CatalogManagement = () => {
     if (!catalogToDelete) return;
 
     try {
+      // First, delete related records in catalog_products and customer_responses
+      // These should cascade automatically, but let's be explicit
+      
+      // Delete catalog products
+      const { error: catalogProductsError } = await supabase
+        .from('catalog_products')
+        .delete()
+        .eq('catalog_id', catalogToDelete);
+
+      if (catalogProductsError) {
+        console.warn('Error deleting catalog products:', catalogProductsError);
+      }
+
+      // Delete customer responses
+      const { error: responsesError } = await supabase
+        .from('customer_responses')
+        .delete()
+        .eq('catalog_id', catalogToDelete);
+
+      if (responsesError) {
+        console.warn('Error deleting customer responses:', responsesError);
+      }
+
+      // Now delete the catalog itself
       const { error } = await supabase
         .from('catalogs')
         .delete()
@@ -64,6 +88,8 @@ export const CatalogManagement = () => {
       setCatalogToDelete(null);
     } catch (error) {
       console.error('Error deleting catalog:', error);
+      // Show user-friendly error message
+      alert('Failed to delete catalog. Please try again or contact support if the issue persists.');
     }
   };
 

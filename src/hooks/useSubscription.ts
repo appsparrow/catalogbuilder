@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/sonner';
 
 // Helper function to validate UUID
 const isValidUUID = (uuid: string | undefined): boolean => {
@@ -84,7 +84,6 @@ export const PLANS: SubscriptionPlan[] = [
 
 export const useSubscription = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [usage, setUsage] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -143,11 +142,7 @@ export const useSubscription = () => {
       console.error('Error fetching subscription:', error);
       // Don't show error toast for missing tables, just use defaults
       if (!error.message?.includes('relation') && !error.message?.includes('does not exist')) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load subscription information',
-          variant: 'destructive'
-        });
+        toast.error('Failed to load subscription information');
       }
     } finally {
       setLoading(false);
@@ -222,11 +217,7 @@ export const useSubscription = () => {
         errorMessage = error.message;
       }
       
-      toast({
-        title: toastTitle,
-        description: errorMessage,
-        variant: 'destructive'
-      });
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -248,20 +239,13 @@ export const useSubscription = () => {
         throw new Error(error.message || 'Failed to cancel subscription');
       }
 
-      toast({
-        title: 'Success',
-        description: 'Subscription canceled successfully'
-      });
+      toast.success('Subscription canceled successfully');
 
       // Refresh subscription data
       await fetchSubscription();
     } catch (error) {
       console.error('Error canceling subscription:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to cancel subscription',
-        variant: 'destructive'
-      });
+      toast.error('Failed to cancel subscription');
       throw error;
     }
   };
