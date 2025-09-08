@@ -309,7 +309,15 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
                       alt="Product"
                       className="w-full h-24 sm:h-32 object-cover"
                     />
-                    <div className="absolute top-1 right-1 sm:top-2 sm:right-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="absolute top-1 right-1 sm:top-2 sm:right-2 h-5 w-5 sm:h-6 sm:w-6 p-0"
+                      onClick={() => removeImage(image.id)}
+                    >
+                      <X className="h-2 w-2 sm:h-3 sm:w-3" />
+                    </Button>
+                    <div className="absolute top-1 left-1 sm:top-2 sm:left-2">
                       <Badge variant="default" className="bg-green-600 text-xs">
                         <Check className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
                         Ready

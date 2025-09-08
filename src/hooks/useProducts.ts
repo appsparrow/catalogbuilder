@@ -55,6 +55,11 @@ export const useProducts = () => {
 
       if (error) throw error;
       
+      console.log('🔍 Products query result:', { 
+        count: data?.length || 0, 
+        data: data?.map(p => ({ id: p.id, name: p.name, archived_at: p.archived_at }))
+      });
+      
       // Map database response to our interface
       const mappedProducts = (data || []).map(product => ({
         ...product,

@@ -96,6 +96,7 @@ export const useSubscription = () => {
       // Fetch user subscription from Supabase (handle missing table gracefully)
       let subData = null;
       try {
+        console.log('🔍 Fetching subscription for user:', user.id);
         const { data, error: subError } = await supabase
           .from('user_subscriptions')
           .select('*')
@@ -103,10 +104,13 @@ export const useSubscription = () => {
           .eq('status', 'active')
           .single();
 
+        console.log('🔍 Subscription query result:', { data, error: subError });
+
         if (subError && subError.code !== 'PGRST116') {
           console.warn('Subscription table not found, using default free plan:', subError.message);
         } else {
           subData = data;
+          console.log('🔍 Found subscription:', subData);
         }
       } catch (tableError) {
         console.warn('Subscription table not found, using default free plan:', tableError);
