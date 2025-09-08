@@ -184,8 +184,9 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
           if (image.unprocessedId) {
             try {
               await removeUnprocessedProduct(image.unprocessedId);
+              console.log('✅ Removed unprocessed product:', image.unprocessedId);
             } catch (error) {
-              console.error('Error removing processed image from unprocessed products:', error);
+              console.error('❌ Error removing processed image from unprocessed products:', error);
             }
           }
         }

@@ -101,21 +101,34 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
 
   const handleImagesProcessed = async (images: UploadedImage[]) => {
     try {
+      const processedImages = new Set<string>(); // Track processed images to prevent duplicates
+      
       for (const image of images) {
-        if (image.details) {
+        if (image.details && !processedImages.has(image.id)) {
+          processedImages.add(image.id);
+          
+          console.log('🔍 Processing image:', { id: image.id, name: image.details.name, unprocessedId: image.unprocessedId });
+          
           // Prefer moving from unprocessed to products (single object) if we have an unprocessed R2 URL
           // Fallback to uploading from file if available
           let imageUrl = image.preview;
           if (image.unprocessedId && image.preview.includes('http')) {
             try {
               imageUrl = await moveToProducts(image.preview, image.details.code);
+              console.log('✅ Image moved successfully:', imageUrl);
             } catch (e) {
+              console.warn('⚠️ Move failed, trying file upload:', e);
               if (image.file) {
                 imageUrl = await uploadImage(image.file, image.details.code);
+                console.log('✅ Image uploaded from file:', imageUrl);
+              } else {
+                console.error('❌ No file available for upload, skipping image');
+                continue; // Skip this image if we can't process it
               }
             }
           } else if (image.file) {
             imageUrl = await uploadImage(image.file, image.details.code);
+            console.log('✅ Image uploaded from file:', imageUrl);
           }
           
           await addProduct({
@@ -127,6 +140,8 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
             original_image_url: imageUrl,
             isActive: true
           });
+          
+          console.log('✅ Product added to database:', image.details.name);
         }
       }
       

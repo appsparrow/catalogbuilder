@@ -112,7 +112,12 @@ export const useProducts = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error inserting product:', error);
+        throw error;
+      }
+      
+      console.log('✅ Product inserted successfully:', { id: data.id, name: data.name, user_id: data.user_id });
       
       // Map the response to our interface
       const mappedData = {
