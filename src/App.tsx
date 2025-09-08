@@ -8,6 +8,7 @@ import Research from './pages/Research';
 import MVPFeatures from './pages/MVPFeatures';
 import NotFound from './pages/NotFound';
 import CatalogPage from './pages/CatalogPage';
+import PromoPage from './pages/PromoPage';
 import { StripeTest } from './pages/StripeTest';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -27,6 +28,7 @@ function App() {
           <Route path="/billing" element={loading ? null : (user ? <Billing /> : <Navigate to="/login" replace />)} />
           <Route path="/stripe-test" element={loading ? null : (user ? <StripeTest /> : <Navigate to="/login" replace />)} />
           <Route path="/features" element={<MVPFeatures />} />
+          <Route path="/promo" element={<PromoPage />} />
           <Route path="/catalog/:shareableLink" element={<CatalogPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

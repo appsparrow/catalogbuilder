@@ -19,7 +19,10 @@ export const onRequest = async (context: any) => {
   try {
     const { planId, userId, couponCode, billingInterval = 'month' } = await request.json();
 
+    console.log('Checkout session request:', { planId, userId, couponCode, billingInterval });
+
     if (!planId || !userId) {
+      console.error('Missing required fields:', { planId, userId });
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
@@ -27,6 +30,14 @@ export const onRequest = async (context: any) => {
     }
 
     // Initialize Stripe (simplified for Cloudflare Workers)
+    if (!env.STRIPE_SECRET_KEY) {
+      console.error('STRIPE_SECRET_KEY environment variable is not set');
+      return new Response(JSON.stringify({ error: 'Stripe configuration missing' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
+      });
+    }
+    
     const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
     // Plan configuration
@@ -39,11 +50,14 @@ export const onRequest = async (context: any) => {
 
     const planConfig = plans[planId]?.[billingInterval];
     if (!planConfig) {
+      console.error('Invalid plan configuration:', { planId, billingInterval, availablePlans: Object.keys(plans) });
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
       });
     }
+
+    console.log('Using plan config:', planConfig);
 
     // Create or get Stripe customer
     let customer;
@@ -59,7 +73,10 @@ export const onRequest = async (context: any) => {
       }
     } catch (error) {
       console.error('Error creating/getting customer:', error);
-      return new Response(JSON.stringify({ error: 'Failed to create customer' }), {
+      return new Response(JSON.stringify({ 
+        error: 'Failed to create customer',
+        details: error?.message || 'Unknown error'
+      }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
       });
@@ -137,7 +154,11 @@ export const onRequest = async (context: any) => {
       }
     }
 
+    console.log('Creating checkout session with config:', JSON.stringify(sessionConfig, null, 2));
+    
     const session = await stripe.checkout.sessions.create(sessionConfig);
+    
+    console.log('Checkout session created successfully:', session.id);
 
     return new Response(JSON.stringify({ url: session.url }), {
       status: 200,
@@ -145,7 +166,16 @@ export const onRequest = async (context: any) => {
     });
   } catch (error: any) {
     console.error('Checkout session error:', error);
-    return new Response(JSON.stringify({ error: error?.message || 'Failed to create checkout session' }), {
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    });
+    
+    return new Response(JSON.stringify({ 
+      error: error?.message || 'Failed to create checkout session',
+      details: error?.stack || 'No additional details available'
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
     });

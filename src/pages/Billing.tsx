@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSubscription, PLANS } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Check, Crown, Zap, Diamond, Smartphone, Github, GitBranch, Tag } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
 
 export default function Billing() {
@@ -18,16 +18,27 @@ export default function Billing() {
     getUsagePercentage 
   } = useSubscription();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [couponCode, setCouponCode] = useState('');
   const [showCouponInput, setShowCouponInput] = useState(false);
 
+  // Handle coupon code from URL parameter
+  useEffect(() => {
+    const urlCoupon = searchParams.get('coupon');
+    if (urlCoupon) {
+      setCouponCode(urlCoupon.toUpperCase());
+      setShowCouponInput(true);
+      toast.success(`Promo code "${urlCoupon.toUpperCase()}" applied!`);
+    }
+  }, [searchParams]);
+
   const handleUpgrade = async (planId: string) => {
     setIsUpgrading(true);
     try {
-      await createCheckoutSession(planId, '', billingInterval);
+      await createCheckoutSession(planId, couponCode, billingInterval);
     } catch (error) {
       console.error('Upgrade error:', error);
     } finally {
@@ -130,8 +141,7 @@ export default function Billing() {
           </div>
         </div>
 
-        {/* Coupon Section - Temporarily Hidden */}
-        {/* 
+        {/* Coupon Section */}
         <div className="flex justify-center mb-8">
           <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 w-full max-w-md shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -164,7 +174,6 @@ export default function Billing() {
             )}
           </div>
         </div>
-        */}
 
         {/* Plans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
