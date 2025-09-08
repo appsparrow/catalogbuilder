@@ -220,6 +220,15 @@ class Stripe {
             value.forEach((method, index) => {
               formData.append(`payment_method_types[${index}]`, String(method));
             });
+          } else if (key === 'discounts' && Array.isArray(value)) {
+            // Handle discounts array properly
+            value.forEach((discount, index) => {
+              if (typeof discount === 'object' && discount !== null) {
+                for (const [discountKey, discountValue] of Object.entries(discount)) {
+                  formData.append(`discounts[${index}][${discountKey}]`, String(discountValue));
+                }
+              }
+            });
           } else {
             formData.append(key, String(value));
           }
