@@ -18,6 +18,9 @@ export interface Catalog {
   logo_url?: string;
   shareable_link: string;
   created_at: string;
+  archived_at?: string | null;
+  delete_at?: string | null;
+  archived_reason?: string | null;
 }
 
 export interface CatalogWithProducts extends Catalog {
@@ -30,7 +33,7 @@ export const useCatalogs = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchCatalogs = async () => {
+  const fetchCatalogs = async (includeArchived: boolean = false) => {
     try {
       let query = supabase
         .from('catalogs')
@@ -45,6 +48,10 @@ export const useCatalogs = () => {
       // Only filter by user_id if user is authenticated and has valid UUID
       if (isValidUUID(user?.id)) {
         query = query.eq('user_id', user.id);
+      }
+
+      if (!includeArchived) {
+        query = query.is('archived_at', null);
       }
 
       const { data: catalogsData, error } = await query;

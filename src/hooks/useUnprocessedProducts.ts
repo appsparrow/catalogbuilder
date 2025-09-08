@@ -168,7 +168,12 @@ export const useUnprocessedProducts = () => {
       form.append('prefix', 'unprocessed');
       form.append('filename', filename);
 
-      const uploadEndpoint = (import.meta as any).env?.VITE_UPLOAD_ENDPOINT || '/api/upload-image';
+      // Resolve upload endpoint for local dev vs production
+      const envEndpoint = (import.meta as any).env?.VITE_UPLOAD_ENDPOINT;
+      const apiBase = (import.meta as any).env?.VITE_API_BASE_URL;
+      const isLocal = typeof window !== 'undefined' && window.location.hostname.includes('localhost');
+      const uploadEndpoint = envEndpoint
+        || (isLocal && apiBase ? `${apiBase.replace(/\/$/, '')}/api/upload-image` : '/api/upload-image');
       const response = await fetch(uploadEndpoint, {
         method: 'POST',
         body: form,
@@ -185,6 +190,7 @@ export const useUnprocessedProducts = () => {
             message = `${message} (${response.status}): ${errText}`;
           } catch {}
         }
+        console.error('Upload endpoint error', { uploadEndpoint, status: response.status, statusText: response.statusText });
         throw new Error(message);
       }
 

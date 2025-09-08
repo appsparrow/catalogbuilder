@@ -97,6 +97,31 @@ export default function Billing() {
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
 
+        {/* Over-limit notice for Free plan */}
+        {usage && (
+          (usage.imageCount > usage.maxImages || usage.catalogCount > usage.maxCatalogs) && (
+            <div className="mb-8 rounded-lg border border-red-300 bg-red-50 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="text-sm sm:text-base text-red-700">
+                  You are over the Free plan limits.
+                  <span className="ml-2">Images: {usage.imageCount}/{usage.maxImages}</span>
+                  <span className="ml-3">Catalogs: {usage.catalogCount}/{usage.maxCatalogs}</span>
+                </div>
+                <Button
+                  variant="default"
+                  onClick={() => handleUpgrade('starter')}
+                  className="w-full sm:w-auto"
+                >
+                  Upgrade to Starter
+                </Button>
+              </div>
+              <div className="mt-2 text-xs text-red-700/80">
+                You can continue viewing and editing existing content, but creating new images or catalogs is disabled until you upgrade or reduce usage.
+              </div>
+            </div>
+          )
+        )}
+
         {/* Plans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {PLANS.map((plan) => {

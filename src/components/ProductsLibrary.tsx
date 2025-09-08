@@ -51,6 +51,7 @@ export const ProductsLibrary = ({
 }: ProductsLibraryProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showInactive, setShowInactive] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<{url: string, name: string} | null>(null);
@@ -58,6 +59,7 @@ export const ProductsLibrary = ({
   // Filter products by status
   const processedProducts = products.filter(product => 
     product.isActive !== false && 
+    (!product.archived_at || showArchived) &&
     (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,6 +68,7 @@ export const ProductsLibrary = ({
 
   const inactiveProducts = products.filter(product => 
     product.isActive === false &&
+    (!product.archived_at || showArchived) &&
     (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -382,6 +385,14 @@ export const ProductsLibrary = ({
               className="text-xs sm:text-sm"
             >
               Show Inactive
+            </Button>
+            <Button
+              variant={showArchived ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowArchived(!showArchived)}
+              className="text-xs sm:text-sm"
+            >
+              {showArchived ? 'Hide Archived' : 'Show Archived'}
             </Button>
           </div>
         </div>

@@ -22,6 +22,9 @@ export interface Product {
   created_at: string;
   isActive: boolean;
   isactive?: boolean; // Database column name
+  archived_at?: string | null;
+  delete_at?: string | null;
+  archived_reason?: string | null;
 }
 
 export const useProducts = () => {
@@ -30,7 +33,7 @@ export const useProducts = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (includeArchived: boolean = false) => {
     try {
       let query = supabase
         .from('products')
@@ -42,6 +45,10 @@ export const useProducts = () => {
         query = query.eq('user_id', user.id);
       }
 
+      if (!includeArchived) {
+        query = query.is('archived_at', null);
+      }
+
       const { data, error } = await query;
 
       if (error) throw error;
@@ -49,7 +56,10 @@ export const useProducts = () => {
       // Map database response to our interface
       const mappedProducts = (data || []).map(product => ({
         ...product,
-        isActive: product.isactive !== undefined ? product.isactive : true
+        isActive: product.isactive !== undefined ? product.isactive : true,
+        archived_at: product.archived_at || null,
+        delete_at: product.delete_at || null,
+        archived_reason: product.archived_reason || null
       }));
       
       setProducts(mappedProducts);

@@ -52,11 +52,11 @@ export const PLANS: SubscriptionPlan[] = [
     price: 0,
     currency: 'usd',
     interval: 'month',
-    maxImages: 50,
-    maxCatalogs: 5,
+    maxImages: 4,
+    maxCatalogs: 2,
     features: [
-      'Upload up to 50 images',
-      'Create up to 5 catalogs',
+      'Upload up to 4 images',
+      'Create up to 2 catalogs',
       'Customer feedback',
       'Email support'
     ]
@@ -68,11 +68,11 @@ export const PLANS: SubscriptionPlan[] = [
     price: 10,
     currency: 'usd',
     interval: 'month',
-    maxImages: 1000,
-    maxCatalogs: 25,
+    maxImages: 6,
+    maxCatalogs: 4,
     features: [
-      'Upload up to 1000 images',
-      'Create up to 25 catalogs',
+      'Upload up to 6 images',
+      'Create up to 4 catalogs',
       'Customer feedback',
       'Email support'
     ],
@@ -135,6 +135,36 @@ export const useSubscription = () => {
         maxImages: currentPlan?.maxImages || 50,
         maxCatalogs: currentPlan?.maxCatalogs || 5
       });
+
+      // If downgraded to free and over limits, archive excess items with 30-day retention
+      try {
+        if (!subData || (subData.plan_id === 'free')) {
+          const overImages = (imagesResult.count || 0) - (currentPlan?.maxImages || 50);
+          const overCatalogs = (catalogsResult.count || 0) - (currentPlan?.maxCatalogs || 5);
+          const deleteAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+          if (overImages > 0 && isValidUUID(user?.id)) {
+            // Archive oldest images beyond limit
+            await supabase.rpc('archive_overlimit_products', {
+              p_user_id: user!.id,
+              p_keep: currentPlan?.maxImages || 50,
+              p_delete_at: deleteAt,
+              p_reason: 'plan_downgrade'
+            });
+          }
+
+          if (overCatalogs > 0 && isValidUUID(user?.id)) {
+            await supabase.rpc('archive_overlimit_catalogs', {
+              p_user_id: user!.id,
+              p_keep: currentPlan?.maxCatalogs || 5,
+              p_delete_at: deleteAt,
+              p_reason: 'plan_downgrade'
+            });
+          }
+        }
+      } catch (archiveErr) {
+        console.warn('Archiving over-limit items skipped or function missing:', archiveErr);
+      }
 
     } catch (error) {
       console.error('Error fetching subscription:', error);
@@ -236,6 +266,8 @@ export const useSubscription = () => {
 
       // Refresh subscription data
       await fetchSubscription();
+
+      // On cancel, set archive timers if over limit (done in fetchSubscription)
     } catch (error) {
       console.error('Error canceling subscription:', error);
       toast.error('Failed to cancel subscription');
