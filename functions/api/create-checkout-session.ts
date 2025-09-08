@@ -17,7 +17,7 @@ export const onRequest = async (context: any) => {
   }
 
   try {
-    const { planId, userId, couponCode } = await request.json();
+    const { planId, userId, couponCode, billingInterval = 'month' } = await request.json();
 
     if (!planId || !userId) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -33,10 +33,11 @@ export const onRequest = async (context: any) => {
     const plans = {
       starter: {
         monthly: { price: 1000, name: 'Starter Plan (Monthly)' }, // $10/month
+        yearly: { price: 11000, name: 'Starter Plan (Yearly)' }   // $110/year
       }
     };
 
-    const planConfig = plans[planId]?.monthly; // Only monthly for now
+    const planConfig = plans[planId]?.[billingInterval];
     if (!planConfig) {
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400,
@@ -78,7 +79,7 @@ export const onRequest = async (context: any) => {
             },
             unit_amount: planConfig.price,
             recurring: {
-              interval: 'month',
+              interval: billingInterval === 'year' ? 'year' : 'month',
             },
           },
           quantity: 1,
@@ -90,7 +91,7 @@ export const onRequest = async (context: any) => {
       metadata: {
         userId,
         planId,
-        interval: 'month'
+        interval: billingInterval
       },
     };
 

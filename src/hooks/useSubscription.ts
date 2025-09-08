@@ -149,7 +149,7 @@ export const useSubscription = () => {
     }
   };
 
-  const createCheckoutSession = async (planId: string, couponCode?: string) => {
+  const createCheckoutSession = async (planId: string, couponCode?: string, billingInterval: 'month' | 'year' = 'month') => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -161,7 +161,8 @@ export const useSubscription = () => {
         body: JSON.stringify({ 
           planId,
           userId: user.id,
-          couponCode: couponCode || null
+          couponCode: couponCode || null,
+          billingInterval
         })
       });
 

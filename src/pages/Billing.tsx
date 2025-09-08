@@ -20,13 +20,14 @@ export default function Billing() {
   const navigate = useNavigate();
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [couponCode, setCouponCode] = useState('');
   const [showCouponInput, setShowCouponInput] = useState(false);
 
   const handleUpgrade = async (planId: string) => {
     setIsUpgrading(true);
     try {
-      await createCheckoutSession(planId, couponCode);
+      await createCheckoutSession(planId, '', billingInterval);
     } catch (error) {
       console.error('Upgrade error:', error);
     } finally {
@@ -100,16 +101,37 @@ export default function Billing() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-        {/* Monthly Only - Annual coming soon */}
+        {/* Billing Toggle */}
         <div className="flex justify-center mb-8">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 flex shadow-sm">
-            <div className="text-sm text-muted-foreground">
-              💳 Monthly billing only - Annual plans coming soon!
-            </div>
+          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-1 flex shadow-sm">
+            <button
+              onClick={() => setBillingInterval('month')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingInterval === 'month'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingInterval('year')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingInterval === 'year'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Annual
+              <span className="ml-1 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
+                Save $10
+              </span>
+            </button>
           </div>
         </div>
 
-        {/* Coupon Section */}
+        {/* Coupon Section - Temporarily Hidden */}
+        {/* 
         <div className="flex justify-center mb-8">
           <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 w-full max-w-md shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -142,6 +164,7 @@ export default function Billing() {
             )}
           </div>
         </div>
+        */}
 
         {/* Plans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -156,9 +179,26 @@ export default function Billing() {
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
                     <div className="text-4xl font-bold text-foreground mb-1">
-                      ${plan.price}
-                      <span className="text-lg text-muted-foreground font-normal"> / month</span>
+                      {billingInterval === 'year' && plan.id === 'starter' ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-2xl text-muted-foreground line-through">$120</span>
+                          <span className="text-4xl text-green-600">$110</span>
+                          <span className="text-lg text-muted-foreground font-normal"> / year</span>
+                        </div>
+                      ) : (
+                        <>
+                          ${plan.price}
+                          <span className="text-lg text-muted-foreground font-normal">
+                            {billingInterval === 'year' ? ' / year' : ' / month'}
+                          </span>
+                        </>
+                      )}
                     </div>
+                    {billingInterval === 'year' && plan.id === 'starter' && (
+                      <div className="text-sm text-green-600 font-medium">
+                        Save $10 per year (1 month free!)
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Button */}
