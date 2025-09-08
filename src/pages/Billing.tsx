@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSubscription, PLANS } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { ArrowLeft, Check, Crown, Zap, Diamond, Smartphone, Github, GitBranch, Tag } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from '@/components/ui/sonner';
+import { ArrowLeft, Check, Crown, Zap, Diamond, Smartphone, Github, GitBranch } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Billing() {
   const { 
@@ -18,27 +16,13 @@ export default function Billing() {
     getUsagePercentage 
   } = useSubscription();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
-  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
-  const [couponCode, setCouponCode] = useState('');
-  const [showCouponInput, setShowCouponInput] = useState(false);
-
-  // Handle coupon code from URL parameter
-  useEffect(() => {
-    const urlCoupon = searchParams.get('coupon');
-    if (urlCoupon) {
-      setCouponCode(urlCoupon.toUpperCase());
-      setShowCouponInput(true);
-      toast.success(`Promo code "${urlCoupon.toUpperCase()}" applied!`);
-    }
-  }, [searchParams]);
 
   const handleUpgrade = async (planId: string) => {
     setIsUpgrading(true);
     try {
-      await createCheckoutSession(planId, couponCode, billingInterval);
+      await createCheckoutSession(planId);
     } catch (error) {
       console.error('Upgrade error:', error);
     } finally {
@@ -112,68 +96,6 @@ export default function Billing() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-1 flex shadow-sm">
-            <button
-              onClick={() => setBillingInterval('month')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                billingInterval === 'month'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBillingInterval('year')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                billingInterval === 'year'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Annual
-              <span className="ml-1 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
-                Save $10
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Coupon Section */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 w-full max-w-md shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-foreground font-medium flex items-center gap-2">
-                <Tag className="h-4 w-4" />
-                Promotional Code
-              </h3>
-              <button
-                onClick={() => setShowCouponInput(!showCouponInput)}
-                className="text-muted-foreground hover:text-foreground text-sm transition-colors"
-              >
-                {showCouponInput ? 'Hide' : 'Add Code'}
-              </button>
-            </div>
-            
-            {showCouponInput && (
-              <div className="space-y-3">
-                <Input
-                  type="text"
-                  placeholder="Enter coupon code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                />
-                {couponCode && (
-                  <div className="text-sm text-muted-foreground">
-                    Coupon "{couponCode}" will be applied at checkout
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Plans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -188,26 +110,9 @@ export default function Billing() {
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
                     <div className="text-4xl font-bold text-foreground mb-1">
-                      {billingInterval === 'year' && plan.id === 'starter' ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="text-2xl text-muted-foreground line-through">$120</span>
-                          <span className="text-4xl text-green-600">$110</span>
-                          <span className="text-lg text-muted-foreground font-normal"> / year</span>
-                        </div>
-                      ) : (
-                        <>
-                          ${plan.price}
-                          <span className="text-lg text-muted-foreground font-normal">
-                            {billingInterval === 'year' ? ' / year' : ' / month'}
-                          </span>
-                        </>
-                      )}
+                      ${plan.price}
+                      <span className="text-lg text-muted-foreground font-normal"> / month</span>
                     </div>
-                    {billingInterval === 'year' && plan.id === 'starter' && (
-                      <div className="text-sm text-green-600 font-medium">
-                        Save $10 per year (1 month free!)
-                      </div>
-                    )}
                   </div>
 
                   {/* Action Button */}
@@ -234,14 +139,6 @@ export default function Billing() {
                       </Button>
                     )}
                     
-                    {/* Show coupon info for paid plans */}
-                    {!isFree && couponCode && (
-                      <div className="mt-2 text-center">
-                        <div className="text-xs text-muted-foreground">
-                          Coupon "{couponCode}" will be applied
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Features List */}

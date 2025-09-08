@@ -17,12 +17,9 @@ export const onRequest = async (context: any) => {
   }
 
   try {
-    const { planId, userId, couponCode, billingInterval = 'month' } = await request.json();
-
-    console.log('Checkout session request:', { planId, userId, couponCode, billingInterval });
+    const { planId, userId } = await request.json();
 
     if (!planId || !userId) {
-      console.error('Missing required fields:', { planId, userId });
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
@@ -30,34 +27,23 @@ export const onRequest = async (context: any) => {
     }
 
     // Initialize Stripe (simplified for Cloudflare Workers)
-    if (!env.STRIPE_SECRET_KEY) {
-      console.error('STRIPE_SECRET_KEY environment variable is not set');
-      return new Response(JSON.stringify({ error: 'Stripe configuration missing' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
-      });
-    }
-    
     const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
-    // Plan configuration
+    // Plan configuration - only monthly for now
     const plans = {
       starter: {
-        monthly: { price: 1000, name: 'Starter Plan (Monthly)' }, // $10/month
-        yearly: { price: 11000, name: 'Starter Plan (Yearly)' }   // $110/year
+        price: 1000, // $10/month
+        name: 'Starter Plan (Monthly)'
       }
     };
 
-    const planConfig = plans[planId]?.[billingInterval];
+    const planConfig = plans[planId];
     if (!planConfig) {
-      console.error('Invalid plan configuration:', { planId, billingInterval, availablePlans: Object.keys(plans) });
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
       });
     }
-
-    console.log('Using plan config:', planConfig);
 
     // Create or get Stripe customer
     let customer;
@@ -73,10 +59,7 @@ export const onRequest = async (context: any) => {
       }
     } catch (error) {
       console.error('Error creating/getting customer:', error);
-      return new Response(JSON.stringify({ 
-        error: 'Failed to create customer',
-        details: error?.message || 'Unknown error'
-      }), {
+      return new Response(JSON.stringify({ error: 'Failed to create customer' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
       });
@@ -96,7 +79,7 @@ export const onRequest = async (context: any) => {
             },
             unit_amount: planConfig.price,
             recurring: {
-              interval: billingInterval === 'year' ? 'year' : 'month',
+              interval: 'month',
             },
           },
           quantity: 1,
@@ -108,57 +91,11 @@ export const onRequest = async (context: any) => {
       metadata: {
         userId,
         planId,
-        interval: billingInterval
+        interval: 'month'
       },
     };
 
-    // Validate coupon if provided
-    if (couponCode && couponCode.trim()) {
-      const trimmedCouponCode = couponCode.trim().toUpperCase();
-      
-      try {
-        // First validate the coupon exists and is valid
-        const coupon = await stripe.coupons.retrieve(trimmedCouponCode);
-        
-        // Check if coupon is valid (not expired, not deleted, etc.)
-        if (!coupon.valid) {
-          return new Response(JSON.stringify({ 
-            error: 'Invalid coupon code',
-            code: 'INVALID_COUPON',
-            message: 'The coupon code you entered is not valid or has expired'
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
-          });
-        }
-        
-        // Add valid coupon to session config
-        sessionConfig.discounts = [{
-          coupon: trimmedCouponCode
-        }];
-      } catch (couponError: any) {
-        // Handle coupon not found or other coupon-related errors
-        if (couponError.message?.includes('No such coupon') || couponError.message?.includes('No such promotion')) {
-          return new Response(JSON.stringify({ 
-            error: 'Invalid coupon code',
-            code: 'INVALID_COUPON',
-            message: 'The coupon code you entered does not exist'
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
-          });
-        }
-        
-        // Re-throw other coupon errors
-        throw couponError;
-      }
-    }
-
-    console.log('Creating checkout session with config:', JSON.stringify(sessionConfig, null, 2));
-    
     const session = await stripe.checkout.sessions.create(sessionConfig);
-    
-    console.log('Checkout session created successfully:', session.id);
 
     return new Response(JSON.stringify({ url: session.url }), {
       status: 200,
@@ -166,16 +103,7 @@ export const onRequest = async (context: any) => {
     });
   } catch (error: any) {
     console.error('Checkout session error:', error);
-    console.error('Error details:', {
-      message: error?.message,
-      stack: error?.stack,
-      name: error?.name
-    });
-    
-    return new Response(JSON.stringify({ 
-      error: error?.message || 'Failed to create checkout session',
-      details: error?.stack || 'No additional details available'
-    }), {
+    return new Response(JSON.stringify({ error: error?.message || 'Failed to create checkout session' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
     });
@@ -250,24 +178,6 @@ class Stripe {
     }
   };
 
-  coupons = {
-    retrieve: async (couponId: string) => {
-      const response = await fetch(`https://api.stripe.com/v1/coupons/${couponId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.secretKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Stripe API error: ${response.status} ${errorText}`);
-      }
-      
-      return await response.json();
-    }
-  };
 
   checkout = {
     sessions: {
@@ -304,15 +214,6 @@ class Stripe {
             // Handle payment_method_types array properly
             value.forEach((method, index) => {
               formData.append(`payment_method_types[${index}]`, String(method));
-            });
-          } else if (key === 'discounts' && Array.isArray(value)) {
-            // Handle discounts array properly
-            value.forEach((discount, index) => {
-              if (typeof discount === 'object' && discount !== null) {
-                for (const [discountKey, discountValue] of Object.entries(discount)) {
-                  formData.append(`discounts[${index}][${discountKey}]`, String(discountValue));
-                }
-              }
             });
           } else {
             formData.append(key, String(value));

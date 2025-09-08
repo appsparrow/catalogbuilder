@@ -57,7 +57,7 @@ export const PLANS: SubscriptionPlan[] = [
     features: [
       'Upload up to 50 images',
       'Create up to 5 catalogs',
-      'Basic customer feedback',
+      'Customer feedback',
       'Email support'
     ]
   },
@@ -73,10 +73,8 @@ export const PLANS: SubscriptionPlan[] = [
     features: [
       'Upload up to 1000 images',
       'Create up to 25 catalogs',
-      'Advanced customer feedback',
-      'Basic analytics',
-      'Priority support',
-      'Custom branding'
+      'Customer feedback',
+      'Email support'
     ],
     stripePriceId: 'price_starter_monthly' // Will be set when Stripe is configured
   }
@@ -149,7 +147,7 @@ export const useSubscription = () => {
     }
   };
 
-  const createCheckoutSession = async (planId: string, couponCode?: string, billingInterval: 'month' | 'year' = 'month') => {
+  const createCheckoutSession = async (planId: string) => {
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -160,9 +158,7 @@ export const useSubscription = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           planId,
-          userId: user.id,
-          couponCode: couponCode || null,
-          billingInterval
+          userId: user.id
         })
       });
 
@@ -203,12 +199,8 @@ export const useSubscription = () => {
       
       // Provide more specific error messages
       let errorMessage = 'Failed to start checkout process';
-      let toastTitle = 'Payment Error';
       
-      if (error.code === 'INVALID_COUPON') {
-        toastTitle = 'Invalid Coupon Code';
-        errorMessage = error.message || 'The coupon code you entered is not valid';
-      } else if (error.message?.includes('fetch')) {
+      if (error.message?.includes('fetch')) {
         errorMessage = 'Unable to connect to payment server. Please check your internet connection.';
       } else if (error.message?.includes('404')) {
         errorMessage = 'Payment service not available. Please contact support.';
