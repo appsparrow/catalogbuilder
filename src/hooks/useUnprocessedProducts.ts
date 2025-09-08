@@ -209,10 +209,16 @@ export const useUnprocessedProducts = () => {
 
   const moveToProducts = async (unprocessedUrl: string, productCode: string) => {
     try {
-      // Translate public URL to R2 object key
-      const base = (import.meta as any).env?.VITE_R2_PUBLIC_BASE_URL || '';
-      const basePrefix = (base as string).replace(/\/$/, '');
-      const key = unprocessedUrl.replace(`${basePrefix}/`, '');
+      // Translate public URL to R2 object key robustly
+      // Prefer parsing the URL path to avoid base mismatches
+      let key = '';
+      try {
+        const u = new URL(unprocessedUrl);
+        key = u.pathname.replace(/^\//, '');
+      } catch {
+        // Fallback: strip protocol and domain if any
+        key = unprocessedUrl.replace(/^https?:\/\/[^/]+\//, '');
+      }
       const fileExt = unprocessedUrl.split('.').pop();
       const toKey = `products/${productCode}_${Date.now()}.${fileExt}`;
 
