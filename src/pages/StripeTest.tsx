@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { ImageDebugger } from '@/components/ImageDebugger';
 
 export const StripeTest = () => {
   const { user } = useAuth();
@@ -73,8 +74,10 @@ export const StripeTest = () => {
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Card className="bg-white/70 backdrop-blur-sm shadow-lg">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Stripe Test */}
+          <Card className="bg-white/70 backdrop-blur-sm shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-brown">Stripe Integration Test</CardTitle>
           </CardHeader>
@@ -131,6 +134,10 @@ export const StripeTest = () => {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Image Debugger */}
+        <ImageDebugger />
+        </div>
       </div>
     </div>
   );

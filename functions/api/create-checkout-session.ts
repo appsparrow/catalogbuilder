@@ -215,6 +215,11 @@ class Stripe {
             for (const [metaKey, metaValue] of Object.entries(value)) {
               formData.append(`metadata[${metaKey}]`, String(metaValue));
             }
+          } else if (key === 'payment_method_types' && Array.isArray(value)) {
+            // Handle payment_method_types array properly
+            value.forEach((method, index) => {
+              formData.append(`payment_method_types[${index}]`, String(method));
+            });
           } else {
             formData.append(key, String(value));
           }

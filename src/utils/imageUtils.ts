@@ -23,37 +23,52 @@ export const validateImageFile = (file: File): { valid: boolean; error?: string 
   return { valid: true };
 };
 
-// Cloudflare Image Optimizer URL generator
+// Image URL generator - currently using direct R2 URLs for reliability
+// Cloudflare Image Resizing can be enabled later for optimization
 export const getOptimizedImageUrl = (originalUrl: string, options: {
   width?: number;
   height?: number;
   quality?: number;
   format?: 'auto' | 'webp' | 'jpeg' | 'png';
+  fallbackToOriginal?: boolean;
 } = {}): string => {
   const {
     width = 400,
     height = 400,
     quality = 85,
-    format = 'auto'
+    format = 'auto',
+    fallbackToOriginal = true
   } = options;
 
-  // Extract the base URL and path
-  const url = new URL(originalUrl);
-  const baseUrl = `${url.protocol}//${url.host}`;
-  const imagePath = url.pathname;
+  // If no original URL, return empty string
+  if (!originalUrl) return '';
 
-  // Build Cloudflare Image Resizing URL
-  // Format: /cdn-cgi/image/{options}/{image-path}
-  const resizeOptions = [
-    `width=${width}`,
-    `height=${height}`,
-    `quality=${quality}`,
-    `format=${format}`,
-    'fit=cover', // Crop to fill dimensions
-    'gravity=auto' // Smart cropping
-  ].join(',');
+  try {
+    // Extract the base URL and path
+    const url = new URL(originalUrl);
+    const baseUrl = `${url.protocol}//${url.host}`;
+    const imagePath = url.pathname;
 
-  return `${baseUrl}/cdn-cgi/image/${resizeOptions}${imagePath}`;
+    // Build Cloudflare Image Resizing URL
+    // Format: /cdn-cgi/image/{options}/{image-path}
+    const resizeOptions = [
+      `width=${width}`,
+      `height=${height}`,
+      `quality=${quality}`,
+      `format=${format}`,
+      'fit=cover', // Crop to fill dimensions
+      'gravity=auto' // Smart cropping
+    ].join(',');
+
+    const optimizedUrl = `${baseUrl}/cdn-cgi/image/${resizeOptions}${imagePath}`;
+    
+    // Using original URLs for reliable image display
+    // Cloudflare Image Resizing can be enabled later for optimization
+    return originalUrl;
+  } catch (error) {
+    console.error('Error generating optimized image URL:', error);
+    return fallbackToOriginal ? originalUrl : '';
+  }
 };
 
 // Standard image sizes for different use cases
