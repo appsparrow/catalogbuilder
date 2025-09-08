@@ -94,11 +94,46 @@ export const onRequest = async (context: any) => {
       },
     };
 
-    // Add coupon if provided
+    // Validate coupon if provided
     if (couponCode && couponCode.trim()) {
-      sessionConfig.discounts = [{
-        coupon: couponCode.trim().toUpperCase()
-      }];
+      const trimmedCouponCode = couponCode.trim().toUpperCase();
+      
+      try {
+        // First validate the coupon exists and is valid
+        const coupon = await stripe.coupons.retrieve(trimmedCouponCode);
+        
+        // Check if coupon is valid (not expired, not deleted, etc.)
+        if (!coupon.valid) {
+          return new Response(JSON.stringify({ 
+            error: 'Invalid coupon code',
+            code: 'INVALID_COUPON',
+            message: 'The coupon code you entered is not valid or has expired'
+          }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
+          });
+        }
+        
+        // Add valid coupon to session config
+        sessionConfig.discounts = [{
+          coupon: trimmedCouponCode
+        }];
+      } catch (couponError: any) {
+        // Handle coupon not found or other coupon-related errors
+        if (couponError.message?.includes('No such coupon') || couponError.message?.includes('No such promotion')) {
+          return new Response(JSON.stringify({ 
+            error: 'Invalid coupon code',
+            code: 'INVALID_COUPON',
+            message: 'The coupon code you entered does not exist'
+          }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request) },
+          });
+        }
+        
+        // Re-throw other coupon errors
+        throw couponError;
+      }
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
@@ -173,6 +208,25 @@ class Stripe {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Stripe API error: ${response.status} ${errorText}`);
+      }
+      
+      return await response.json();
+    }
+  };
+
+  coupons = {
+    retrieve: async (couponId: string) => {
+      const response = await fetch(`https://api.stripe.com/v1/coupons/${couponId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.secretKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       });
       
       if (!response.ok) {

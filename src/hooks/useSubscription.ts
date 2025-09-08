@@ -172,9 +172,12 @@ export const useSubscription = () => {
 
       if (!response.ok) {
         let errorMessage = 'Failed to create checkout session';
+        let errorCode = null;
+        
         try {
           const error = await response.json();
           errorMessage = error.message || errorMessage;
+          errorCode = error.code;
         } catch (parseError) {
           // If response isn't JSON, use status text
           errorMessage = response.statusText || errorMessage;
@@ -183,10 +186,14 @@ export const useSubscription = () => {
         console.error('Stripe API Error:', {
           status: response.status,
           statusText: response.statusText,
-          message: errorMessage
+          message: errorMessage,
+          code: errorCode
         });
         
-        throw new Error(errorMessage);
+        // Create error object with code for specific handling
+        const error = new Error(errorMessage);
+        (error as any).code = errorCode;
+        throw error;
       }
 
       const { url } = await response.json();
@@ -200,7 +207,12 @@ export const useSubscription = () => {
       
       // Provide more specific error messages
       let errorMessage = 'Failed to start checkout process';
-      if (error.message?.includes('fetch')) {
+      let toastTitle = 'Payment Error';
+      
+      if (error.code === 'INVALID_COUPON') {
+        toastTitle = 'Invalid Coupon Code';
+        errorMessage = error.message || 'The coupon code you entered is not valid';
+      } else if (error.message?.includes('fetch')) {
         errorMessage = 'Unable to connect to payment server. Please check your internet connection.';
       } else if (error.message?.includes('404')) {
         errorMessage = 'Payment service not available. Please contact support.';
@@ -211,7 +223,7 @@ export const useSubscription = () => {
       }
       
       toast({
-        title: 'Payment Error',
+        title: toastTitle,
         description: errorMessage,
         variant: 'destructive'
       });
