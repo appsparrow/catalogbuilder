@@ -45,10 +45,12 @@ export const useCatalogs = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Only filter by user_id if user is authenticated and has valid UUID
-      if (isValidUUID(user?.id)) {
-        query = query.eq('user_id', user.id);
+      // Require valid user id; otherwise show none
+      if (!isValidUUID(user?.id)) {
+        setCatalogs([]);
+        return;
       }
+      query = query.eq('user_id', user.id);
 
       if (!includeArchived) {
         query = query.is('archived_at', null);

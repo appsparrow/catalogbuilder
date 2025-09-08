@@ -41,6 +41,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
     loading 
   } = useUnprocessedProducts();
   const { canUploadImage, usage, currentPlan } = useSubscription();
+  const isOverLimit = (usage?.imageCount || 0) >= (usage?.maxImages || 0);
 
   // Sync unprocessed products from database to local state
   useEffect(() => {
@@ -248,7 +249,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
       )}
 
       {/* Ready to Process Images */}
-      {imagesWithDetails.filter(img => img.status === 'pending').length > 0 && (
+      {imagesWithDetails.filter(img => img.status === 'pending').length > 0 && !isOverLimit && (
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
             <div className="flex items-center gap-2">
@@ -308,6 +309,16 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
             ))}
           </div>
         </div>
+      )}
+
+      {/* Over-limit notice instead of processing controls */}
+      {imagesWithDetails.filter(img => img.status === 'pending').length > 0 && isOverLimit && (
+        <Card>
+          <CardContent className="p-4 sm:p-6 text-center text-red-700">
+            <h3 className="text-base sm:text-lg font-semibold mb-1">Image limit reached</h3>
+            <p className="text-sm sm:text-base">Upgrade to process {imagesWithDetails.filter(img => img.status === 'pending').length} product(s).</p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Processing Images */}
