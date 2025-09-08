@@ -73,8 +73,8 @@ Use only in testing. Continue?`)) return;
     }
   };
 
-  if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/app" replace />;
+  // Wait for auth to hydrate; route guard already checks auth in App.tsx
+  if (!user) return null;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
