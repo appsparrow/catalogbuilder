@@ -210,7 +210,6 @@ export const useUnprocessedProducts = () => {
   const moveToProducts = async (unprocessedUrl: string, productCode: string) => {
     try {
       // Translate public URL to R2 object key robustly
-      // Prefer parsing the URL path to avoid base mismatches
       let key = '';
       try {
         const u = new URL(unprocessedUrl);
@@ -219,8 +218,16 @@ export const useUnprocessedProducts = () => {
         // Fallback: strip protocol and domain if any
         key = unprocessedUrl.replace(/^https?:\/\/[^/]+\//, '');
       }
-      const fileExt = unprocessedUrl.split('.').pop();
+      
+      // Additional validation - ensure we have a valid key
+      if (!key || key.length < 3) {
+        throw new Error(`Invalid R2 key extracted: ${key}`);
+      }
+      
+      const fileExt = unprocessedUrl.split('.').pop() || 'jpg';
       const toKey = `products/${productCode}_${Date.now()}.${fileExt}`;
+
+      console.log('Moving image:', { fromKey: key, toKey, originalUrl: unprocessedUrl });
 
       const moveEndpoint = (import.meta as any).env?.VITE_MOVE_ENDPOINT || '/api/move-image';
       const res = await fetch(moveEndpoint, {
@@ -228,6 +235,7 @@ export const useUnprocessedProducts = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fromKey: key, toKey }),
       });
+      
       if (!res.ok) {
         let message = 'Move failed';
         try {
@@ -239,9 +247,12 @@ export const useUnprocessedProducts = () => {
             message = `${message} (${res.status}): ${errText}`;
           } catch {}
         }
+        console.error('Move failed:', { status: res.status, statusText: res.statusText, message });
         throw new Error(message);
       }
+      
       const { url } = await res.json();
+      console.log('Move successful:', { url, toKey });
       return url as string;
     } catch (error) {
       console.error('Error moving image to products:', error);

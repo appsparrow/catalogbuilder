@@ -58,7 +58,15 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
       } : undefined
     }));
     
-    setUploadedImages(images);
+    // Preserve existing images with details that aren't in the database yet
+    setUploadedImages(prevImages => {
+      const existingImagesWithDetails = prevImages.filter(img => 
+        img.details && !img.unprocessedId
+      );
+      
+      // Combine existing images with details and new unprocessed products
+      return [...existingImagesWithDetails, ...images];
+    });
   }, [unprocessedProducts]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
