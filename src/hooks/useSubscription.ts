@@ -152,43 +152,8 @@ export const useSubscription = () => {
         maxCatalogs: currentPlan?.maxCatalogs || 5
       });
 
-      // If downgraded to free and over limits, archive excess items with 30-day retention
-      try {
-        if (!subData || (subData.plan_id === 'free')) {
-          const overImages = processedImageCount - (currentPlan?.maxImages || 50);
-          const overCatalogs = (catalogsResult.count || 0) - (currentPlan?.maxCatalogs || 5);
-          const deleteAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-          console.log('🔍 Archiving check:', { 
-            overImages, 
-            overCatalogs, 
-            processedImageCount, 
-            maxImages: currentPlan?.maxImages,
-            planId: subData?.plan_id 
-          });
-
-          if (overImages > 0 && isValidUUID(user?.id)) {
-            // Archive oldest images beyond limit
-            await supabase.rpc('archive_overlimit_products', {
-              p_user_id: user!.id,
-              p_keep: currentPlan?.maxImages || 50,
-              p_delete_at: deleteAt,
-              p_reason: 'plan_downgrade'
-            });
-          }
-
-          if (overCatalogs > 0 && isValidUUID(user?.id)) {
-            await supabase.rpc('archive_overlimit_catalogs', {
-              p_user_id: user!.id,
-              p_keep: currentPlan?.maxCatalogs || 5,
-              p_delete_at: deleteAt,
-              p_reason: 'plan_downgrade'
-            });
-          }
-        }
-      } catch (archiveErr) {
-        console.warn('Archiving over-limit items skipped or function missing:', archiveErr);
-      }
+      // Note: Archiving logic removed - limits are now enforced at the UI level
+      // Users cannot exceed limits, so no archiving is needed
 
     } catch (error) {
       console.error('Error fetching subscription:', error);

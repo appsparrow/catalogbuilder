@@ -49,6 +49,11 @@ export const ProductsLibrary = ({
   onProductToggleStatus,
   onEditProduct
 }: ProductsLibraryProps) => {
+  // Debug logging
+  console.log('🔍 ProductsLibrary received products:', {
+    count: products.length,
+    products: products.map(p => ({ id: p.id, name: p.name, archived_at: p.archived_at }))
+  });
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showInactive, setShowInactive] = useState(false);
   const [showArchived, setShowArchived] = useState(false);

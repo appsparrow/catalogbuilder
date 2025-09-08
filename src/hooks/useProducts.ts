@@ -57,7 +57,10 @@ export const useProducts = () => {
       
       console.log('🔍 Products query result:', { 
         count: data?.length || 0, 
-        data: data?.map(p => ({ id: p.id, name: p.name, archived_at: p.archived_at }))
+        user_id: user?.id,
+        includeArchived,
+        query_filter: includeArchived ? 'all' : 'archived_at IS NULL',
+        data: data?.map(p => ({ id: p.id, name: p.name, archived_at: p.archived_at, user_id: p.user_id }))
       });
       
       // Map database response to our interface

@@ -88,12 +88,12 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
   }, [unprocessedProducts]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    // Check if user can upload more images (only count processed products)
+    // STRICT LIMIT ENFORCEMENT - Prevent uploading if at limit
     const processedCount = usage?.imageCount || 0;
     const maxImages = usage?.maxImages || 50;
     
     if (processedCount >= maxImages) {
-      alert(`You've reached your processed image limit (${processedCount}/${maxImages}). Upgrade to Starter plan to process more images.`);
+      alert(`You have reached your image limit (${processedCount}/${maxImages}). Upgrade to Starter plan to upload more images.`);
       return;
     }
 
@@ -101,7 +101,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
     const remainingSlots = maxImages - processedCount;
     
     if (acceptedFiles.length > remainingSlots) {
-      alert(`You can only upload ${remainingSlots} more images. Upgrade to Starter plan for more storage.`);
+      alert(`You can only upload ${remainingSlots} more images (limit: ${maxImages}). Upgrade to Starter plan for more storage.`);
       return;
     }
 
@@ -154,12 +154,12 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
       const remainingSlots = maxImages - currentProcessed;
       
       if (remainingSlots <= 0) {
-        alert(`Cannot process images: You have reached your limit of ${maxImages} processed images. Upgrade to process more.`);
+        alert(`You have reached your image limit (${currentProcessed}/${maxImages}). Upgrade to Starter plan to process more images.`);
         return;
       }
       
       if (imagesWithDetails.length > remainingSlots) {
-        alert(`Cannot process ${imagesWithDetails.length} images: You can only process ${remainingSlots} more images (limit: ${maxImages}). Upgrade to process more.`);
+        alert(`You can only process ${remainingSlots} more images (limit: ${maxImages}). Upgrade to Starter plan to process more.`);
         return;
       }
       
@@ -230,7 +230,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
             <h3 className="text-base sm:text-lg font-semibold mb-2">Upload Products</h3>
             <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
               {(usage?.imageCount || 0) >= (usage?.maxImages || 50)
-                ? `Processed image limit reached (${usage?.imageCount || 0}/${usage?.maxImages || 50}). Upgrade to Starter plan to process more images.`
+                ? `You have reached your image limit (${usage?.imageCount || 0}/${usage?.maxImages || 50}). Upgrade to Starter plan to upload more images.`
                 : isDragActive
                   ? "Drop the images here..."
                   : "Drag & drop images here, or click to select files"
@@ -362,13 +362,13 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
         </div>
       )}
 
-      {/* Over-limit notice instead of processing controls */}
+      {/* Limit reached notice instead of processing controls */}
       {imagesWithDetails.filter(img => img.status === 'pending').length > 0 && isOverLimit && (
         <Card>
           <CardContent className="p-4 sm:p-6 text-center text-red-700">
-            <h3 className="text-base sm:text-lg font-semibold mb-1">Processed image limit reached</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-1">Image limit reached</h3>
             <p className="text-sm sm:text-base">
-              You have {usage?.imageCount || 0} processed images (limit: {usage?.maxImages || 50}). 
+              You have reached your image limit ({usage?.imageCount || 0}/{usage?.maxImages || 50}). 
               Upgrade to Starter plan to process {imagesWithDetails.filter(img => img.status === 'pending').length} more product(s).
             </p>
           </CardContent>

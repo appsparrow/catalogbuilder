@@ -66,7 +66,7 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
     if (!canCreateCatalog()) {
       toast({
         title: "Catalog limit reached",
-        description: `You've reached your catalog limit (${usage?.catalogCount || 0}/${usage?.maxCatalogs || 1}). Upgrade to Starter plan to create up to 5 catalogs.`,
+        description: `You have reached your catalog limit (${usage?.catalogCount || 0}/${usage?.maxCatalogs || 1}). Upgrade to Starter plan to create more catalogs.`,
         variant: "destructive"
       });
       return;
