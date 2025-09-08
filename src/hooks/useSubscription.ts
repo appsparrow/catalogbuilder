@@ -125,8 +125,8 @@ export const useSubscription = () => {
       
       if (isValidUUID(user?.id)) {
         const [imagesRes, catalogsRes, unprocessedRes] = await Promise.all([
-          supabase.from('products').select('id', { count: 'exact' }).eq('user_id', user.id),
-          supabase.from('catalogs').select('id', { count: 'exact' }).eq('user_id', user.id),
+          supabase.from('products').select('id', { count: 'exact' }).eq('user_id', user.id).is('archived_at', null),
+          supabase.from('catalogs').select('id', { count: 'exact' }).eq('user_id', user.id).is('archived_at', null),
           supabase.from('unprocessed_products').select('id', { count: 'exact' }).eq('user_id', user.id)
         ]);
         imagesResult = imagesRes;
@@ -158,6 +158,14 @@ export const useSubscription = () => {
           const overImages = processedImageCount - (currentPlan?.maxImages || 50);
           const overCatalogs = (catalogsResult.count || 0) - (currentPlan?.maxCatalogs || 5);
           const deleteAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+          console.log('🔍 Archiving check:', { 
+            overImages, 
+            overCatalogs, 
+            processedImageCount, 
+            maxImages: currentPlan?.maxImages,
+            planId: subData?.plan_id 
+          });
 
           if (overImages > 0 && isValidUUID(user?.id)) {
             // Archive oldest images beyond limit
@@ -312,6 +320,7 @@ export const useSubscription = () => {
     const current = type === 'images' ? usage.imageCount : usage.catalogCount;
     return Math.min((current / max) * 100, 100);
   };
+
 
   useEffect(() => {
     fetchSubscription();
