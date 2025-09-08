@@ -296,6 +296,16 @@ export default function Billing() {
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-foreground mb-2">Test Stripe Integration</h3>
               <p className="text-muted-foreground mb-4">Use Stripe test cards to verify the payment flow</p>
+              
+              <div className="mb-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.open('/stripe-test', '_blank')}
+                  className="mr-2"
+                >
+                  Debug Stripe API
+                </Button>
+              </div>
               <div className="bg-secondary/50 rounded-lg p-4 text-left">
                 <p className="text-sm text-foreground mb-2"><strong>Test Card Numbers:</strong></p>
                 <div className="space-y-1 text-xs text-muted-foreground">

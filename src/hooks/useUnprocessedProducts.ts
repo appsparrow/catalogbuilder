@@ -4,6 +4,13 @@ import { useToast } from "@/hooks/use-toast";
 import { validateImageFile } from "@/utils/imageUtils";
 import { useAuth } from "./useAuth";
 
+// Helper function to validate UUID
+const isValidUUID = (uuid: string | undefined): boolean => {
+  if (!uuid || uuid === '') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 export interface UnprocessedProduct {
   id: string;
   image_url: string;
@@ -33,22 +40,35 @@ export const useUnprocessedProducts = () => {
   const fetchUnprocessedProducts = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('unprocessed_products')
         .select('*')
-        .eq('user_id', user?.id || '')
         .order('created_at', { ascending: false });
+
+      // Only filter by user_id if user is authenticated and has valid UUID
+      if (isValidUUID(user?.id)) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
       setUnprocessedProducts(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching unprocessed products:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch unprocessed products",
-        variant: "destructive",
-      });
+      
+      // Don't show error toast for missing columns (migration not run yet)
+      if (error?.message?.includes('column') && error?.message?.includes('does not exist')) {
+        console.warn('Unprocessed products table missing user_id column - migration may not be run yet');
+        setUnprocessedProducts([]);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch unprocessed products",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -56,9 +76,16 @@ export const useUnprocessedProducts = () => {
 
   const addUnprocessedProduct = async (product: UnprocessedProductInput) => {
     try {
+      const insertData: any = { ...product };
+      
+      // Only add user_id if user is authenticated and has valid UUID
+      if (isValidUUID(user?.id)) {
+        insertData.user_id = user.id;
+      }
+
       const { data, error } = await supabase
         .from('unprocessed_products')
-        .insert([{ ...product, user_id: user?.id }])
+        .insert([insertData])
         .select()
         .single();
 

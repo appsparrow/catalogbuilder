@@ -8,6 +8,7 @@ import Research from './pages/Research';
 import MVPFeatures from './pages/MVPFeatures';
 import NotFound from './pages/NotFound';
 import CatalogPage from './pages/CatalogPage';
+import { StripeTest } from './pages/StripeTest';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +25,7 @@ function App() {
           <Route path="/app" element={loading ? null : (user ? <Index /> : <Navigate to="/login" replace />)} />
           <Route path="/settings" element={loading ? null : (user ? <Settings /> : <Navigate to="/login" replace />)} />
           <Route path="/billing" element={loading ? null : (user ? <Billing /> : <Navigate to="/login" replace />)} />
+          <Route path="/stripe-test" element={loading ? null : (user ? <StripeTest /> : <Navigate to="/login" replace />)} />
           <Route path="/features" element={<MVPFeatures />} />
           <Route path="/catalog/:shareableLink" element={<CatalogPage />} />
           <Route path="*" element={<NotFound />} />

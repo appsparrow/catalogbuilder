@@ -3,6 +3,13 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// Helper function to validate UUID
+const isValidUUID = (uuid: string | undefined): boolean => {
+  if (!uuid || uuid === '') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -110,11 +117,18 @@ export const useSubscription = () => {
 
       setSubscription(subData || null);
 
-      // Fetch usage stats
-      const [imagesResult, catalogsResult] = await Promise.all([
-        supabase.from('products').select('id', { count: 'exact' }).eq('user_id', user.id),
-        supabase.from('catalogs').select('id', { count: 'exact' }).eq('user_id', user.id)
-      ]);
+      // Fetch usage stats (only if user is authenticated)
+      let imagesResult = { count: 0 };
+      let catalogsResult = { count: 0 };
+      
+      if (isValidUUID(user?.id)) {
+        const [imagesRes, catalogsRes] = await Promise.all([
+          supabase.from('products').select('id', { count: 'exact' }).eq('user_id', user.id),
+          supabase.from('catalogs').select('id', { count: 'exact' }).eq('user_id', user.id)
+        ]);
+        imagesResult = imagesRes;
+        catalogsResult = catalogsRes;
+      }
 
       const currentPlan = subData ? PLANS.find(p => p.id === subData.plan_id) : PLANS[0];
       
@@ -157,17 +171,48 @@ export const useSubscription = () => {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create checkout session');
+        let errorMessage = 'Failed to create checkout session';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch (parseError) {
+          // If response isn't JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        
+        console.error('Stripe API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          message: errorMessage
+        });
+        
+        throw new Error(errorMessage);
       }
 
       const { url } = await response.json();
+      if (!url) {
+        throw new Error('No checkout URL returned from server');
+      }
+      
       window.location.href = url;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating checkout session:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to start checkout process';
+      if (error.message?.includes('fetch')) {
+        errorMessage = 'Unable to connect to payment server. Please check your internet connection.';
+      } else if (error.message?.includes('404')) {
+        errorMessage = 'Payment service not available. Please contact support.';
+      } else if (error.message?.includes('500')) {
+        errorMessage = 'Payment service error. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: 'Error',
-        description: 'Failed to start checkout process',
+        title: 'Payment Error',
+        description: errorMessage,
         variant: 'destructive'
       });
       throw error;

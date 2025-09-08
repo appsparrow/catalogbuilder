@@ -4,6 +4,13 @@ import { useToast } from '@/hooks/use-toast';
 import { validateImageFile } from '@/utils/imageUtils';
 import { useAuth } from './useAuth';
 
+// Helper function to validate UUID
+const isValidUUID = (uuid: string | undefined): boolean => {
+  if (!uuid || uuid === '') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 export interface Product {
   id: string;
   name: string;
@@ -25,11 +32,17 @@ export const useProducts = () => {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('products')
         .select('*')
-        .eq('user_id', user?.id || '')
         .order('created_at', { ascending: false });
+
+      // Only filter by user_id if user is authenticated and has valid UUID
+      if (isValidUUID(user?.id)) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -40,13 +53,20 @@ export const useProducts = () => {
       }));
       
       setProducts(mappedProducts);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching products:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch products",
-        variant: "destructive",
-      });
+      
+      // Don't show error toast for missing columns (migration not run yet)
+      if (error?.message?.includes('column') && error?.message?.includes('does not exist')) {
+        console.warn('Products table missing user_id column - migration may not be run yet');
+        setProducts([]);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch products",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -56,11 +76,15 @@ export const useProducts = () => {
     try {
       // Convert isActive to isactive for database
       const { isActive, ...rest } = product as any;
-      const dbProduct = {
+      const dbProduct: any = {
         ...rest,
-        isactive: isActive ?? true,
-        user_id: user?.id
+        isactive: isActive ?? true
       };
+
+      // Only add user_id if user is authenticated and has valid UUID
+      if (isValidUUID(user?.id)) {
+        dbProduct.user_id = user.id;
+      }
       
       const { data, error } = await supabase
         .from('products')

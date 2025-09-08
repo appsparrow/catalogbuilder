@@ -4,6 +4,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Product } from './useProducts';
 import { useAuth } from './useAuth';
 
+// Helper function to validate UUID
+const isValidUUID = (uuid: string | undefined): boolean => {
+  if (!uuid || uuid === '') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 export interface Catalog {
   id: string;
   name: string;
@@ -25,7 +32,7 @@ export const useCatalogs = () => {
 
   const fetchCatalogs = async () => {
     try {
-      const { data: catalogsData, error } = await supabase
+      let query = supabase
         .from('catalogs')
         .select(`
           *,
@@ -33,8 +40,14 @@ export const useCatalogs = () => {
             products (*)
           )
         `)
-        .eq('user_id', user?.id || '')
         .order('created_at', { ascending: false });
+
+      // Only filter by user_id if user is authenticated and has valid UUID
+      if (isValidUUID(user?.id)) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data: catalogsData, error } = await query;
 
       if (error) throw error;
 
@@ -44,13 +57,20 @@ export const useCatalogs = () => {
       })) || [];
 
       setCatalogs(catalogsWithProducts);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching catalogs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch catalogs",
-        variant: "destructive",
-      });
+      
+      // Don't show error toast for missing columns (migration not run yet)
+      if (error?.message?.includes('column') && error?.message?.includes('does not exist')) {
+        console.warn('Catalogs table missing user_id column - migration may not be run yet');
+        setCatalogs([]);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch catalogs",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -68,15 +88,21 @@ export const useCatalogs = () => {
       const shareableLink = `catalog-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       // Create catalog
+      const catalogInsertData: any = {
+        name: catalogData.name,
+        brand_name: catalogData.brand_name,
+        logo_url: catalogData.logo_url,
+        shareable_link: shareableLink,
+      };
+
+      // Only add user_id if user is authenticated and has valid UUID
+      if (isValidUUID(user?.id)) {
+        catalogInsertData.user_id = user.id;
+      }
+
       const { data: catalog, error: catalogError } = await supabase
         .from('catalogs')
-        .insert([{
-          name: catalogData.name,
-          brand_name: catalogData.brand_name,
-          logo_url: catalogData.logo_url,
-          shareable_link: shareableLink,
-          user_id: user?.id,
-        }])
+        .insert([catalogInsertData])
         .select()
         .single();
 
