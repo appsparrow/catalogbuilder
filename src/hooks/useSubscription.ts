@@ -135,6 +135,11 @@ export const useSubscription = () => {
       }
 
       const currentPlan = subData ? PLANS.find(p => p.id === subData.plan_id) : PLANS[0];
+      console.log('🔍 Plan detection:', { 
+        subData: subData ? { plan_id: subData.plan_id } : null, 
+        currentPlan: currentPlan?.name,
+        availablePlans: PLANS.map(p => ({ id: p.id, name: p.name }))
+      });
       
       // Only count processed products as "used" images
       // Unprocessed images don't count against the limit until they're processed

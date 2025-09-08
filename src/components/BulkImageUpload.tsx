@@ -148,6 +148,21 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
   const processImages = async () => {
     const imagesWithDetails = uploadedImages.filter(img => img.details);
     if (imagesWithDetails.length > 0) {
+      // STRICT LIMIT ENFORCEMENT - Check before processing
+      const currentProcessed = usage?.imageCount || 0;
+      const maxImages = usage?.maxImages || 50;
+      const remainingSlots = maxImages - currentProcessed;
+      
+      if (remainingSlots <= 0) {
+        alert(`Cannot process images: You have reached your limit of ${maxImages} processed images. Upgrade to process more.`);
+        return;
+      }
+      
+      if (imagesWithDetails.length > remainingSlots) {
+        alert(`Cannot process ${imagesWithDetails.length} images: You can only process ${remainingSlots} more images (limit: ${maxImages}). Upgrade to process more.`);
+        return;
+      }
+      
       setIsProcessing(true);
       
       // Mark images as processing
