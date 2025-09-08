@@ -117,20 +117,26 @@ export const useSubscription = () => {
       // Fetch usage stats (only if user is authenticated)
       let imagesResult = { count: 0 };
       let catalogsResult = { count: 0 };
+      let unprocessedResult = { count: 0 };
       
       if (isValidUUID(user?.id)) {
-        const [imagesRes, catalogsRes] = await Promise.all([
+        const [imagesRes, catalogsRes, unprocessedRes] = await Promise.all([
           supabase.from('products').select('id', { count: 'exact' }).eq('user_id', user.id),
-          supabase.from('catalogs').select('id', { count: 'exact' }).eq('user_id', user.id)
+          supabase.from('catalogs').select('id', { count: 'exact' }).eq('user_id', user.id),
+          supabase.from('unprocessed_products').select('id', { count: 'exact' }).eq('user_id', user.id)
         ]);
         imagesResult = imagesRes;
         catalogsResult = catalogsRes;
+        unprocessedResult = unprocessedRes;
       }
 
       const currentPlan = subData ? PLANS.find(p => p.id === subData.plan_id) : PLANS[0];
       
+      // Total image count includes both processed and unprocessed
+      const totalImageCount = (imagesResult.count || 0) + (unprocessedResult.count || 0);
+      
       setUsage({
-        imageCount: imagesResult.count || 0,
+        imageCount: totalImageCount,
         catalogCount: catalogsResult.count || 0,
         maxImages: currentPlan?.maxImages || 50,
         maxCatalogs: currentPlan?.maxCatalogs || 5
@@ -139,7 +145,7 @@ export const useSubscription = () => {
       // If downgraded to free and over limits, archive excess items with 30-day retention
       try {
         if (!subData || (subData.plan_id === 'free')) {
-          const overImages = (imagesResult.count || 0) - (currentPlan?.maxImages || 50);
+          const overImages = totalImageCount - (currentPlan?.maxImages || 50);
           const overCatalogs = (catalogsResult.count || 0) - (currentPlan?.maxCatalogs || 5);
           const deleteAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 

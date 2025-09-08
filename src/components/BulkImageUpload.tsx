@@ -43,6 +43,18 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
   const { canUploadImage, usage, currentPlan } = useSubscription();
   const isOverLimit = (usage?.imageCount || 0) >= (usage?.maxImages || 0);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 BulkImageUpload Debug:', {
+      usage,
+      currentPlan,
+      isOverLimit,
+      canUpload: canUploadImage(),
+      uploadedImagesCount: uploadedImages.length,
+      imagesWithDetails: uploadedImages.filter(img => img.details).length
+    });
+  }, [usage, currentPlan, isOverLimit, uploadedImages]);
+
   // Sync unprocessed products from database to local state
   useEffect(() => {
     const images: UploadedImage[] = unprocessedProducts.map(product => ({
