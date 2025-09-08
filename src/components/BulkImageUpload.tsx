@@ -46,12 +46,18 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
   // Debug logging
   useEffect(() => {
     console.log('🔍 BulkImageUpload Debug:', {
-      usage,
-      currentPlan,
+      usage: {
+        processedImages: usage?.imageCount || 0,
+        maxImages: usage?.maxImages || 50,
+        catalogs: usage?.catalogCount || 0,
+        maxCatalogs: usage?.maxCatalogs || 5
+      },
+      currentPlan: currentPlan?.name,
       isOverLimit,
       canUpload: canUploadImage(),
       uploadedImagesCount: uploadedImages.length,
-      imagesWithDetails: uploadedImages.filter(img => img.details).length
+      imagesWithDetails: uploadedImages.filter(img => img.details).length,
+      unprocessedImages: uploadedImages.filter(img => !img.details).length
     });
   }, [usage, currentPlan, isOverLimit, uploadedImages]);
 
@@ -82,15 +88,17 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
   }, [unprocessedProducts]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    // Check if user can upload more images
-    if (!canUploadImage()) {
-      alert(`You've reached your image limit (${usage?.maxImages || 50}). Upgrade to Starter plan to upload up to 1000 images.`);
+    // Check if user can upload more images (only count processed products)
+    const processedCount = usage?.imageCount || 0;
+    const maxImages = usage?.maxImages || 50;
+    
+    if (processedCount >= maxImages) {
+      alert(`You've reached your processed image limit (${processedCount}/${maxImages}). Upgrade to Starter plan to process more images.`);
       return;
     }
 
     // Check if adding these files would exceed the limit
-    const currentImageCount = usage?.imageCount || 0;
-    const remainingSlots = (usage?.maxImages || 50) - currentImageCount;
+    const remainingSlots = maxImages - processedCount;
     
     if (acceptedFiles.length > remainingSlots) {
       alert(`You can only upload ${remainingSlots} more images. Upgrade to Starter plan for more storage.`);
@@ -206,8 +214,8 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
             )}
             <h3 className="text-base sm:text-lg font-semibold mb-2">Upload Products</h3>
             <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-              {!canUploadImage() 
-                ? `Image limit reached (${usage?.imageCount || 0}/${usage?.maxImages || 50}). Upgrade to Starter plan for more storage.`
+              {(usage?.imageCount || 0) >= (usage?.maxImages || 50)
+                ? `Processed image limit reached (${usage?.imageCount || 0}/${usage?.maxImages || 50}). Upgrade to Starter plan to process more images.`
                 : isDragActive
                   ? "Drop the images here..."
                   : "Drag & drop images here, or click to select files"
@@ -218,7 +226,7 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
             </p>
             {usage && (
               <div className="mt-4 text-xs text-muted-foreground">
-                {usage.imageCount} / {usage.maxImages} images used
+                {usage.imageCount} / {usage.maxImages} processed images
               </div>
             )}
           </div>
@@ -335,8 +343,11 @@ export const BulkImageUpload = ({ onImagesProcessed, onEditImage }: BulkImageUpl
       {imagesWithDetails.filter(img => img.status === 'pending').length > 0 && isOverLimit && (
         <Card>
           <CardContent className="p-4 sm:p-6 text-center text-red-700">
-            <h3 className="text-base sm:text-lg font-semibold mb-1">Image limit reached</h3>
-            <p className="text-sm sm:text-base">Upgrade to process {imagesWithDetails.filter(img => img.status === 'pending').length} product(s).</p>
+            <h3 className="text-base sm:text-lg font-semibold mb-1">Processed image limit reached</h3>
+            <p className="text-sm sm:text-base">
+              You have {usage?.imageCount || 0} processed images (limit: {usage?.maxImages || 50}). 
+              Upgrade to Starter plan to process {imagesWithDetails.filter(img => img.status === 'pending').length} more product(s).
+            </p>
           </CardContent>
         </Card>
       )}

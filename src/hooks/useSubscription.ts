@@ -132,11 +132,12 @@ export const useSubscription = () => {
 
       const currentPlan = subData ? PLANS.find(p => p.id === subData.plan_id) : PLANS[0];
       
-      // Total image count includes both processed and unprocessed
-      const totalImageCount = (imagesResult.count || 0) + (unprocessedResult.count || 0);
+      // Only count processed products as "used" images
+      // Unprocessed images don't count against the limit until they're processed
+      const processedImageCount = imagesResult.count || 0;
       
       setUsage({
-        imageCount: totalImageCount,
+        imageCount: processedImageCount,
         catalogCount: catalogsResult.count || 0,
         maxImages: currentPlan?.maxImages || 50,
         maxCatalogs: currentPlan?.maxCatalogs || 5
@@ -145,7 +146,7 @@ export const useSubscription = () => {
       // If downgraded to free and over limits, archive excess items with 30-day retention
       try {
         if (!subData || (subData.plan_id === 'free')) {
-          const overImages = totalImageCount - (currentPlan?.maxImages || 50);
+          const overImages = processedImageCount - (currentPlan?.maxImages || 50);
           const overCatalogs = (catalogsResult.count || 0) - (currentPlan?.maxCatalogs || 5);
           const deleteAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
