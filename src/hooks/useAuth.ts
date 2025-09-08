@@ -16,7 +16,9 @@ export const useAuth = () => {
     const init = async () => {
       const { data } = await supabase.auth.getUser();
       if (!mounted) return;
-      setUser(data.user ? { id: data.user.id, email: data.user.email || undefined } : null);
+      const userData = data.user ? { id: data.user.id, email: data.user.email || undefined } : null;
+      console.log('🔍 Auth init - user loaded:', userData);
+      setUser(userData);
       setLoading(false);
     };
     init();

@@ -35,6 +35,12 @@ export const useProducts = () => {
 
   const fetchProducts = async (includeArchived: boolean = false) => {
     try {
+      console.log('🔍 fetchProducts called:', { 
+        user_id: user?.id, 
+        isValidUUID: isValidUUID(user?.id),
+        includeArchived 
+      });
+
       let query = supabase
         .from('products')
         .select('*')
@@ -42,15 +48,20 @@ export const useProducts = () => {
 
       // Require a valid user id to query. Otherwise return empty.
       if (!isValidUUID(user?.id)) {
+        console.log('❌ Invalid user ID, returning empty products');
         setProducts([]);
         return;
       }
+      
       query = query.eq('user_id', user.id);
+      console.log('🔍 Added user_id filter:', user.id);
 
       if (!includeArchived) {
         query = query.is('archived_at', null);
+        console.log('🔍 Added archived_at IS NULL filter');
       }
 
+      console.log('🔍 Executing query...');
       const { data, error } = await query;
 
       if (error) throw error;
@@ -301,8 +312,9 @@ export const useProducts = () => {
   };
 
   useEffect(() => {
+    console.log('🔍 useProducts useEffect triggered, calling fetchProducts');
     fetchProducts();
-  }, []);
+  }, [user]); // Add user dependency to refetch when user changes
 
   return {
     products,
