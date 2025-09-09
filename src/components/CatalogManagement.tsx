@@ -7,6 +7,7 @@ import { useCatalogs } from "@/hooks/useCatalogs";
 import { useCustomerResponses } from "@/hooks/useCustomerResponses";
 import { CustomerResponses } from "./CustomerResponses";
 import { Badge } from "./ui/badge";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 
 export const CatalogManagement = () => {
@@ -17,6 +18,7 @@ export const CatalogManagement = () => {
   const [catalogToDelete, setCatalogToDelete] = useState<string | null>(null);
   const [responseCounts, setResponseCounts] = useState<Record<string, number>>({});
   const responsesRef = useRef<HTMLDivElement>(null);
+  const { usage } = useSubscription();
 
   useEffect(() => {
     const fetchResponseCounts = async () => {
@@ -116,7 +118,7 @@ export const CatalogManagement = () => {
       </div>
       
       <div className="space-y-4">
-        {catalogs.map(catalog => (
+        {(catalogs.slice(0, usage?.maxCatalogs ?? catalogs.length)).map(catalog => (
           <Card 
             key={catalog.id} 
             className={`overflow-hidden hover:shadow-md transition-shadow ${
@@ -190,6 +192,12 @@ export const CatalogManagement = () => {
           </Card>
         ))}
       </div>
+
+      {catalogs.length > (usage?.maxCatalogs ?? catalogs.length) && (
+        <div className="mt-3 text-xs text-muted-foreground">
+          Showing first {usage?.maxCatalogs} of {catalogs.length} catalogs. Upgrade to view all.
+        </div>
+      )}
 
       {/* Responses Section */}
       <div ref={responsesRef} className="mt-8">

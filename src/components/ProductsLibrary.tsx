@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Product } from "@/types/catalog";
 import { EditProductModal } from "./EditProductModal";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,6 +75,7 @@ export const ProductsLibrary = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<{url: string, name: string} | null>(null);
+  const { usage } = useSubscription();
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     productId: string;
@@ -107,6 +109,15 @@ export const ProductsLibrary = ({
      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Enforce view cap based on plan: only show up to maxImages across sections
+  const maxVisibleImages = usage?.maxImages ?? Infinity;
+  const visibleProcessed = processedProducts.slice(0, maxVisibleImages);
+  const remainingForInactive = Math.max(maxVisibleImages - visibleProcessed.length, 0);
+  const visibleInactive = inactiveProducts.slice(0, remainingForInactive);
+  const totalCount = processedProducts.length + (showInactive ? inactiveProducts.length : 0);
+  const shownCount = visibleProcessed.length + (showInactive ? visibleInactive.length : 0);
+  const hiddenCount = Math.max(totalCount - shownCount, 0);
 
   const handleToggleStatus = async (productId: string, currentStatus: boolean) => {
     if (onProductToggleStatus) {
@@ -494,41 +505,47 @@ export const ProductsLibrary = ({
         </Card>
       )}
 
-      {/* Processed Products Section */}
-      {processedProducts.length > 0 && (
+      {/* Processed Products Section (capped) */}
+      {visibleProcessed.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-lg font-semibold">Processed Products (Ready for Catalog)</h2>
-            <Badge variant="default" className="bg-green-600">{processedProducts.length}</Badge>
+            <Badge variant="default" className="bg-green-600">{visibleProcessed.length}</Badge>
           </div>
           <div className={
             viewMode === 'grid' 
               ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6"
               : "space-y-3"
           }>
-            {processedProducts.map(product => 
+            {visibleProcessed.map(product => 
               viewMode === 'grid' ? renderProductCard(product) : renderProductListItem(product)
             )}
           </div>
         </div>
       )}
 
-      {/* Inactive Products Section */}
-      {showInactive && inactiveProducts.length > 0 && (
+      {/* Inactive Products Section (capped) */}
+      {showInactive && visibleInactive.length > 0 && (
         <div className="mt-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-lg font-semibold">Inactive Products</h2>
-            <Badge variant="secondary">{inactiveProducts.length}</Badge>
+            <Badge variant="secondary">{visibleInactive.length}</Badge>
           </div>
           <div className={
             viewMode === 'grid' 
               ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6"
               : "space-y-3"
           }>
-            {inactiveProducts.map(product => 
+            {visibleInactive.map(product => 
               viewMode === 'grid' ? renderProductCard(product) : renderProductListItem(product)
             )}
           </div>
+        </div>
+      )}
+
+      {hiddenCount > 0 && (
+        <div className="mt-3 text-xs text-muted-foreground">
+          Showing first {shownCount} of {totalCount} products. Upgrade to view all.
         </div>
       )}
 
