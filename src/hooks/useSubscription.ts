@@ -93,34 +93,33 @@ export const useSubscription = () => {
     }
 
     try {
-      // Fetch user subscription from Supabase (handle missing table gracefully)
+      // Fetch current plan from user_plans (single source of truth)
       let subData = null;
       try {
-        console.log('🔍 Fetching subscription for user:', user.id);
+        console.log('🔍 Fetching user plan for user:', user.id);
         const { data, error: subError } = await supabase
-          .from('user_subscriptions')
+          .from('user_plans')
           .select('*')
           .eq('user_id', user.id)
-          .eq('status', 'active')
           .single();
 
         console.log('🔍 Subscription query result:', { data, error: subError });
 
         if (subError && subError.code !== 'PGRST116') {
-          console.warn('Subscription table not found, using default free plan:', subError.message);
+          console.warn('user_plans table not found, falling back to legacy:', subError.message);
         } else {
           subData = data;
           console.log('🔍 Found subscription:', subData);
         }
       } catch (tableError) {
-        console.warn('Subscription table not found, using default free plan:', tableError);
+        console.warn('user_plans table not found, using default free plan:', tableError);
       }
 
       // Map DB record (snake_case) to our interface (camelCase)
       let mappedSub: UserSubscription | null = null;
       if (subData) {
         mappedSub = {
-          id: subData.id,
+          id: subData.user_id,
           userId: subData.user_id,
           planId: subData.plan_id,
           status: subData.status,
