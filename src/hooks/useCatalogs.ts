@@ -35,6 +35,12 @@ export const useCatalogs = () => {
 
   const fetchCatalogs = async (includeArchived: boolean = false) => {
     try {
+      console.log('🔍 fetchCatalogs called:', { 
+        user_id: user?.id, 
+        isValidUUID: isValidUUID(user?.id),
+        includeArchived 
+      });
+
       let query = supabase
         .from('catalogs')
         .select(`
@@ -47,24 +53,38 @@ export const useCatalogs = () => {
 
       // Require valid user id; otherwise show none
       if (!isValidUUID(user?.id)) {
+        console.log('❌ Invalid user ID for catalogs, returning empty');
         setCatalogs([]);
         return;
       }
+      
       query = query.eq('user_id', user.id);
+      console.log('🔍 Added user_id filter for catalogs:', user.id);
 
       if (!includeArchived) {
         query = query.is('archived_at', null);
+        console.log('🔍 Added archived_at IS NULL filter for catalogs');
       }
 
+      console.log('🔍 Executing catalogs query...');
       const { data: catalogsData, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Catalogs query error:', error);
+        throw error;
+      }
+
+      console.log('🔍 Catalogs query result:', { 
+        count: catalogsData?.length || 0, 
+        catalogs: catalogsData?.map(c => ({ id: c.id, name: c.name, archived_at: c.archived_at, user_id: c.user_id }))
+      });
 
       const catalogsWithProducts = catalogsData?.map(catalog => ({
         ...catalog,
         products: catalog.catalog_products?.map((cp: any) => cp.products) || []
       })) || [];
 
+      console.log('🔍 Processed catalogs with products:', catalogsWithProducts.length);
       setCatalogs(catalogsWithProducts);
     } catch (error: any) {
       console.error('Error fetching catalogs:', error);
@@ -175,8 +195,9 @@ export const useCatalogs = () => {
   };
 
   useEffect(() => {
+    console.log('🔍 useCatalogs useEffect triggered, calling fetchCatalogs');
     fetchCatalogs();
-  }, []);
+  }, [user]); // Add user dependency to refetch when user changes
 
   return {
     catalogs,

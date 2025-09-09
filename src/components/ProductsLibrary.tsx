@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,7 @@ interface ProductsLibraryProps {
   onCreateCatalog: () => void;
   onProductToggleStatus?: (productId: string, isActive: boolean) => void;
   onEditProduct?: (productId: string, updates: Partial<Product>) => Promise<Product>;
+  onDeleteProduct?: (productId: string) => Promise<void>;
 }
 
 type ViewMode = 'grid' | 'list';
@@ -47,7 +48,8 @@ export const ProductsLibrary = ({
   onProductSelect, 
   onCreateCatalog,
   onProductToggleStatus,
-  onEditProduct
+  onEditProduct,
+  onDeleteProduct
 }: ProductsLibraryProps) => {
   // Debug logging
   console.log('🔍 ProductsLibrary received products:', {
@@ -60,6 +62,14 @@ export const ProductsLibrary = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<{url: string, name: string} | null>(null);
+
+  // Cleanup effect to ensure modal state is reset
+  useEffect(() => {
+    return () => {
+      setEditingProduct(null);
+      setSelectedImage(null);
+    };
+  }, []);
 
   // Filter products by status
   const processedProducts = products.filter(product => 
@@ -90,6 +100,21 @@ export const ProductsLibrary = ({
     }
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    if (!onDeleteProduct) return;
+    
+    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await onDeleteProduct(productId);
+    } catch (error) {
+      // Error is already handled in the hook with toast
+      console.error('Delete product error:', error);
+    }
+  };
+
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
   };
@@ -104,6 +129,10 @@ export const ProductsLibrary = ({
         throw error;
       }
     }
+  };
+
+  const handleCloseEdit = () => {
+    setEditingProduct(null);
   };
 
   const renderProductCard = (product: Product) => {
@@ -172,6 +201,18 @@ export const ProductsLibrary = ({
                       </>
                     )}
                   </DropdownMenuItem>
+                  {onDeleteProduct && (
+                    <DropdownMenuItem 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProduct(product.id);
+                      }}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Delete Product
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -314,6 +355,18 @@ export const ProductsLibrary = ({
                       </>
                     )}
                   </DropdownMenuItem>
+                  {onDeleteProduct && (
+                    <DropdownMenuItem 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProduct(product.id);
+                      }}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Delete Product
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -336,7 +389,7 @@ export const ProductsLibrary = ({
       </div>
 
       {/* Sticky Create Catalog Button */}
-      {selectedProducts.length > 0 && (
+      {selectedProducts.length >= 2 && (
         <div className="sticky top-4 z-10 mb-6 mt-4">
           <div className="flex justify-end">
             <Button onClick={onCreateCatalog} className="flex items-center gap-2 shadow-lg">
@@ -469,12 +522,19 @@ export const ProductsLibrary = ({
                 <span className="text-xs sm:text-sm font-medium">
                   {selectedProducts.length === 1 ? 'product' : 'products'} selected for catalog
                 </span>
+                {selectedProducts.length < 2 && (
+                  <span className="text-xs text-muted-foreground">
+                    (Select at least 2 to create catalog)
+                  </span>
+                )}
               </div>
-              <Button onClick={onCreateCatalog} className="flex items-center gap-2 w-full sm:w-auto">
-                <FileText className="h-4 w-4" />
-                Create Catalog
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+              {selectedProducts.length >= 2 && (
+                <Button onClick={onCreateCatalog} className="flex items-center gap-2 w-full sm:w-auto">
+                  <FileText className="h-4 w-4" />
+                  Create Catalog
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -484,7 +544,7 @@ export const ProductsLibrary = ({
       <EditProductModal
         product={editingProduct}
         isOpen={!!editingProduct}
-        onClose={() => setEditingProduct(null)}
+        onClose={handleCloseEdit}
         onSave={handleSaveEdit}
       />
 

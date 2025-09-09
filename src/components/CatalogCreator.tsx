@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,14 +27,27 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
   console.log('📋 CatalogCreator rendered with selectedProducts:', selectedProducts);
   
   const [catalogName, setCatalogName] = useState("");
-  const [brandName, setBrandName] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>("/logo-IllusDecor.png");
   const [isCreating, setIsCreating] = useState(false);
+  const [companyName, setCompanyName] = useState("");
   const { toast } = useToast();
   const { uploadLogo } = useLogoUpload();
   const { canCreateCatalog, usage, currentPlan } = useSubscription();
+
+  // Load company name from settings
+  useEffect(() => {
+    const saved = localStorage.getItem('profile-settings');
+    if (saved) {
+      try {
+        const settings = JSON.parse(saved);
+        setCompanyName(settings.companyName || '');
+      } catch (e) {
+        console.error('Failed to parse saved settings:', e);
+      }
+    }
+  }, []);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,10 +66,20 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
   };
 
   const handleCreateCatalog = async () => {
-    if (!catalogName || !brandName || !customerName) {
+    if (!catalogName || !customerName) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check minimum products requirement
+    if (selectedProducts.length < 2) {
+      toast({
+        title: "Not enough products",
+        description: "Please select at least 2 products to create a catalog",
         variant: "destructive"
       });
       return;
@@ -76,12 +99,12 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
     try {
       let logoUrl = "/logo-IllusDecor.png"; // Default to ILLUS DECOR logo
       if (logoFile) {
-        logoUrl = await uploadLogo(logoFile, brandName);
+        logoUrl = await uploadLogo(logoFile, companyName);
       }
 
       const result = await onCatalogCreate({
         name: catalogName,
-        brand_name: brandName,
+        brand_name: companyName,
         logo_url: logoUrl,
         customer_name: customerName,
         product_ids: selectedProducts.map(p => p.id)
@@ -146,13 +169,17 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
             </div>
             
             <div>
-              <Label htmlFor="brand-name">Brand Name *</Label>
+              <Label htmlFor="company-name">Company Name</Label>
               <Input
-                id="brand-name"
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-                placeholder="Your brand name"
+                id="company-name"
+                value={companyName}
+                disabled
+                placeholder="Set in Settings"
+                className="bg-muted"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Company name is set in Settings page
+              </p>
             </div>
             
             <div>
@@ -238,13 +265,18 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
 
             <Button 
               onClick={handleCreateCatalog}
-              disabled={isCreating || !catalogName || !brandName || !customerName || !canCreateCatalog()}
+              disabled={isCreating || !catalogName || !customerName || selectedProducts.length < 2 || !canCreateCatalog()}
               className="w-full"
             >
               {!canCreateCatalog() ? (
                 <>
                   <Lock className="mr-2 h-4 w-4" />
                   Catalog Limit Reached
+                </>
+              ) : selectedProducts.length < 2 ? (
+                <>
+                  <Lock className="mr-2 h-4 w-4" />
+                  Select at least 2 products
                 </>
               ) : (
                 <>

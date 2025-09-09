@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,8 +31,9 @@ export const EditProductModal = ({ product, isOpen, onClose, onSave }: EditProdu
   });
   const [isSaving, setIsSaving] = useState(false);
 
+  // Reset form when product changes
   useEffect(() => {
-    if (product) {
+    if (product && isOpen) {
       setFormData({
         name: product.name || "",
         code: product.code || "",
@@ -41,7 +41,21 @@ export const EditProductModal = ({ product, isOpen, onClose, onSave }: EditProdu
         supplier: product.supplier || ""
       });
     }
-  }, [product]);
+  }, [product, isOpen]);
+
+  // Reset saving state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsSaving(false);
+      // Reset form data when modal closes to prevent stale state
+      setFormData({
+        name: "",
+        code: "",
+        category: "",
+        supplier: ""
+      });
+    }
+  }, [isOpen]);
 
   const handleSave = async () => {
     if (!product || !formData.name.trim() || !formData.code.trim() || !formData.category || !formData.supplier) {
@@ -64,30 +78,56 @@ export const EditProductModal = ({ product, isOpen, onClose, onSave }: EditProdu
     }
   };
 
-  const handleClose = () => {
+  const handleCancel = () => {
     if (!isSaving) {
+      // Force state reset before closing
+      setFormData({
+        name: "",
+        code: "",
+        category: "",
+        supplier: ""
+      });
+      setIsSaving(false);
       onClose();
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape' && !isSaving) {
+      handleCancel();
+    }
+  };
+
+  // Cleanup effect to ensure modal is properly closed
+  useEffect(() => {
+    return () => {
+      // Force cleanup when component unmounts
+      if (isOpen) {
+        onClose();
+      }
+    };
+  }, [isOpen, onClose]);
+
+  // Force close if product becomes null
+  useEffect(() => {
+    if (!product && isOpen) {
+      onClose();
+    }
+  }, [product, isOpen, onClose]);
+
   if (!product) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isSaving && onClose()}>
+      <DialogContent 
+        className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto"
+        onKeyDown={handleKeyDown}
+      >
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg sm:text-xl">Edit Product</DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              disabled={isSaving}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-lg sm:text-xl">Edit Product</DialogTitle>
+          <DialogDescription>
+            Update the product details below. All fields are required.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="grid grid-cols-1 gap-4 sm:gap-6">
@@ -128,26 +168,6 @@ export const EditProductModal = ({ product, isOpen, onClose, onSave }: EditProdu
             </div>
             
             <div>
-              <Label htmlFor="edit-category">Category *</Label>
-              <Select 
-                value={formData.category} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                disabled={isSaving}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
               <Label htmlFor="edit-supplier">Supplier *</Label>
               <Select 
                 value={formData.supplier} 
@@ -166,6 +186,26 @@ export const EditProductModal = ({ product, isOpen, onClose, onSave }: EditProdu
                 </SelectContent>
               </Select>
             </div>
+            
+            <div>
+              <Label htmlFor="edit-category">Category *</Label>
+              <Select 
+                value={formData.category} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                disabled={isSaving}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Preview */}
             <div className="pt-3 sm:pt-4 border-t">
@@ -175,11 +215,11 @@ export const EditProductModal = ({ product, isOpen, onClose, onSave }: EditProdu
                   <div className="font-medium text-sm sm:text-base">{formData.name}</div>
                   <div className="text-xs sm:text-sm text-muted-foreground">{formData.code}</div>
                   <div className="flex gap-1 sm:gap-2">
-                    {formData.category && (
-                      <Badge variant="secondary" className="text-xs">{formData.category}</Badge>
-                    )}
                     {formData.supplier && (
                       <Badge variant="outline" className="text-xs">{formData.supplier}</Badge>
+                    )}
+                    {formData.category && (
+                      <Badge variant="secondary" className="text-xs">{formData.category}</Badge>
                     )}
                   </div>
                 </div>
@@ -191,7 +231,7 @@ export const EditProductModal = ({ product, isOpen, onClose, onSave }: EditProdu
         <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-4 sm:mt-6">
           <Button 
             variant="outline" 
-            onClick={handleClose}
+            onClick={handleCancel}
             disabled={isSaving}
             className="w-full sm:w-auto"
           >

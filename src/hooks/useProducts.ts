@@ -311,6 +311,55 @@ export const useProducts = () => {
     }
   };
 
+  const deleteProduct = async (productId: string) => {
+    try {
+      // First check if product is part of any catalog
+      const { data: catalogProducts, error: checkError } = await supabase
+        .from('catalog_products')
+        .select('catalog_id, catalogs(name)')
+        .eq('product_id', productId);
+
+      if (checkError) {
+        console.error('❌ Error checking catalog usage:', checkError);
+        throw checkError;
+      }
+
+      if (catalogProducts && catalogProducts.length > 0) {
+        const catalogNames = catalogProducts.map(cp => cp.catalogs?.name).filter(Boolean);
+        throw new Error(`Cannot delete product: It is currently used in ${catalogNames.length} catalog(s): ${catalogNames.join(', ')}`);
+      }
+
+      // If not in any catalog, proceed with deletion
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) {
+        console.error('❌ Error deleting product:', error);
+        throw error;
+      }
+
+      // Remove from local state
+      setProducts(prev => prev.filter(product => product.id !== productId));
+      
+      toast({
+        title: "Success",
+        description: "Product deleted successfully",
+      });
+      
+      console.log('✅ Product deleted successfully:', productId);
+    } catch (error: any) {
+      console.error('❌ Error deleting product:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete product",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     console.log('🔍 useProducts useEffect triggered, calling fetchProducts');
     fetchProducts();
@@ -323,6 +372,7 @@ export const useProducts = () => {
     uploadImage,
     updateProduct,
     updateProductStatus,
+    deleteProduct,
     refetch: fetchProducts,
   };
 };

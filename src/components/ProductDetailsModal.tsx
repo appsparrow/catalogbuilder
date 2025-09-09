@@ -131,25 +131,6 @@ export const ProductDetailsModal = ({ image, isOpen, onClose, onSave }: ProductD
             </div>
             
             <div>
-              <Label htmlFor="category">Category *</Label>
-              <Select 
-                value={formData.category} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
               <Label htmlFor="supplier">Supplier *</Label>
               <Select 
                 value={formData.supplier} 
@@ -167,6 +148,25 @@ export const ProductDetailsModal = ({ image, isOpen, onClose, onSave }: ProductD
                 </SelectContent>
               </Select>
             </div>
+            
+            <div>
+              <Label htmlFor="category">Category *</Label>
+              <Select 
+                value={formData.category} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="pt-3 sm:pt-4 border-t">
               <div className="text-xs sm:text-sm text-muted-foreground mb-2">Preview:</div>
@@ -175,11 +175,11 @@ export const ProductDetailsModal = ({ image, isOpen, onClose, onSave }: ProductD
                   <div className="font-medium text-sm sm:text-base">{formData.name}</div>
                   <div className="text-xs sm:text-sm text-muted-foreground">{formData.code}</div>
                   <div className="flex gap-1 sm:gap-2">
-                    {formData.category && (
-                      <Badge variant="secondary" className="text-xs">{formData.category}</Badge>
-                    )}
                     {formData.supplier && (
                       <Badge variant="outline" className="text-xs">{formData.supplier}</Badge>
+                    )}
+                    {formData.category && (
+                      <Badge variant="secondary" className="text-xs">{formData.category}</Badge>
                     )}
                   </div>
                 </div>
