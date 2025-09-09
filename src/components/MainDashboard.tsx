@@ -39,7 +39,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
   
-  const { products, addProduct, uploadImage, updateProduct, updateProductStatus, deleteProduct, refetch } = useProducts();
+  const { products, addProduct, uploadImage, updateProduct, updateProductStatus, getProductCatalogUsage, deleteProduct, refetch } = useProducts();
   const { catalogs, createCatalog, refetch: refetchCatalogs } = useCatalogs();
   const { updateUnprocessedProduct, moveToProducts } = useUnprocessedProducts();
   const { toast } = useToast();
@@ -240,6 +240,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
             onProductToggleStatus={handleProductToggleStatus}
             onEditProduct={updateProduct}
             onDeleteProduct={deleteProduct}
+            onCheckProductUsage={getProductCatalogUsage}
           />
         )}
 

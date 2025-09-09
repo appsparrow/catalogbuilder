@@ -24,6 +24,16 @@ import {
 import { Product } from "@/types/catalog";
 import { EditProductModal } from "./EditProductModal";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -38,6 +48,7 @@ interface ProductsLibraryProps {
   onProductToggleStatus?: (productId: string, isActive: boolean) => void;
   onEditProduct?: (productId: string, updates: Partial<Product>) => Promise<Product>;
   onDeleteProduct?: (productId: string) => Promise<void>;
+  onCheckProductUsage?: (productId: string) => Promise<{ count: number; catalogNames: string[] }>;
 }
 
 type ViewMode = 'grid' | 'list';
@@ -49,7 +60,8 @@ export const ProductsLibrary = ({
   onCreateCatalog,
   onProductToggleStatus,
   onEditProduct,
-  onDeleteProduct
+  onDeleteProduct,
+  onCheckProductUsage
 }: ProductsLibraryProps) => {
   // Debug logging
   console.log('🔍 ProductsLibrary received products:', {
@@ -62,6 +74,12 @@ export const ProductsLibrary = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<{url: string, name: string} | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    productId: string;
+    usedCount: number;
+    catalogNames: string[];
+  } | null>(null);
 
   // Cleanup effect to ensure modal state is reset
   useEffect(() => {
@@ -102,16 +120,18 @@ export const ProductsLibrary = ({
 
   const handleDeleteProduct = async (productId: string) => {
     if (!onDeleteProduct) return;
-    
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-      return;
-    }
-
     try {
-      await onDeleteProduct(productId);
+      let usedCount = 0;
+      let names: string[] = [];
+      if (onCheckProductUsage) {
+        const usage = await onCheckProductUsage(productId);
+        usedCount = usage.count;
+        names = usage.catalogNames;
+      }
+      setDeleteConfirm({ productId, usedCount, catalogNames: names });
     } catch (error) {
-      // Error is already handled in the hook with toast
-      console.error('Delete product error:', error);
+      console.error('Delete pre-check error:', error);
+      setDeleteError('Failed to check product usage.');
     }
   };
 
@@ -547,6 +567,76 @@ export const ProductsLibrary = ({
         onClose={handleCloseEdit}
         onSave={handleSaveEdit}
       />
+
+      {/* Unified Delete Confirm Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => { if (!open) { setDeleteConfirm(null); setDeleteError(null); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteConfirm?.usedCount ? 'Product is used in catalogs' : 'Delete product?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteError ? (
+                <span className="text-red-600">{deleteError}</span>
+              ) : deleteConfirm?.usedCount ? (
+                <>
+                  This product is used in {deleteConfirm.usedCount} catalog(s): {deleteConfirm.catalogNames.join(', ')}.
+                  You can make it inactive or delete it from all catalogs.
+                </>
+              ) : (
+                <>This product is not used in any catalogs. Deleting it cannot be undone.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setDeleteConfirm(null); setDeleteError(null); }}>Cancel</AlertDialogCancel>
+            {deleteConfirm?.usedCount ? (
+              <>
+                <AlertDialogAction
+                  onClick={async () => {
+                    if (!deleteConfirm) return;
+                    try {
+                      if (onProductToggleStatus) await onProductToggleStatus(deleteConfirm.productId, false);
+                      setDeleteConfirm(null);
+                    } catch (e: any) {
+                      setDeleteError(e?.message || 'Failed to make product inactive.');
+                    }
+                  }}
+                >
+                  Make Inactive
+                </AlertDialogAction>
+                <AlertDialogAction
+                  onClick={async () => {
+                    if (!deleteConfirm || !onDeleteProduct) return;
+                    try {
+                      await onDeleteProduct(deleteConfirm.productId);
+                      setDeleteConfirm(null);
+                    } catch (e: any) {
+                      setDeleteError(e?.message || 'Failed to delete product.');
+                    }
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </>
+            ) : (
+              <AlertDialogAction
+                onClick={async () => {
+                  if (!deleteConfirm || !onDeleteProduct) return;
+                  try {
+                    await onDeleteProduct(deleteConfirm.productId);
+                    setDeleteConfirm(null);
+                  } catch (e: any) {
+                    setDeleteError(e?.message || 'Failed to delete product.');
+                  }
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Image Modal */}
       {selectedImage && (

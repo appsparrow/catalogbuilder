@@ -6,15 +6,33 @@ import { CustomerResponses } from "./CustomerResponses";
 import { CatalogManagement } from "./CatalogManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Grid3x3, Palette, MessageSquare, Settings } from "lucide-react";
+import { Upload, Grid3x3, Palette, MessageSquare, Settings, BarChart3 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { useCatalogs } from "@/hooks/useCatalogs";
 import { useCustomerResponses } from "@/hooks/useCustomerResponses";
+import { useEffect, useState } from "react";
 
 export const AdminDashboard = () => {
   const { products, addProduct, uploadImage } = useProducts();
   const { catalogs, createCatalog, refetch: refetchCatalogs } = useCatalogs();
   const { responses } = useCustomerResponses();
+  const [analytics, setAnalytics] = useState<any>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const token = (import.meta as any).env?.VITE_ADMIN_API_TOKEN || '';
+        const res = await fetch('/api/admin-analytics', {
+          headers: token ? { 'x-admin-token': token } : undefined,
+        });
+        const data = await res.json();
+        setAnalytics(data);
+      } catch (e) {
+        console.error('Failed to load analytics', e);
+      }
+    };
+    load();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -24,7 +42,7 @@ export const AdminDashboard = () => {
       </div>
 
       <Tabs defaultValue="upload" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="upload">
             <Upload className="mr-2 h-4 w-4" />
             Upload
@@ -44,6 +62,10 @@ export const AdminDashboard = () => {
           <TabsTrigger value="responses">
             <MessageSquare className="mr-2 h-4 w-4" />
             All Responses
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            <BarChart3 className="mr-2 h-4 w-4" />
+            Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -105,6 +127,49 @@ export const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <CustomerResponses responses={responses} products={products} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <Card>
+            <CardHeader>
+              <CardTitle>System Analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!analytics ? (
+                <div className="text-sm text-muted-foreground">Loading analytics…</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">Totals</div>
+                    <div className="text-sm text-muted-foreground">Products: {analytics.totals?.totalProducts}</div>
+                    <div className="text-sm text-muted-foreground">Catalogs: {analytics.totals?.totalCatalogs}</div>
+                    <div className="text-sm text-muted-foreground">Subscriptions: {analytics.totals?.totalSubscriptions}</div>
+                    <div className="text-sm text-muted-foreground">Active Subscriptions: {analytics.totals?.activeSubscriptions}</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">Plans</div>
+                    {Object.entries(analytics.breakdown || {}).map(([plan, counts]: any) => (
+                      <div key={plan} className="text-sm text-muted-foreground">
+                        {plan}: active {counts.active}, canceled {counts.canceled}, past_due {counts.past_due}, unpaid {counts.unpaid}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">Top users by products</div>
+                    {(analytics.topProducts || []).map((r: any) => (
+                      <div key={r.user_id} className="text-sm text-muted-foreground">{r.user_id}: {r.count}</div>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">Top users by catalogs</div>
+                    {(analytics.topCatalogs || []).map((r: any) => (
+                      <div key={r.user_id} className="text-sm text-muted-foreground">{r.user_id}: {r.count}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

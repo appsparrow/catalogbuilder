@@ -116,7 +116,23 @@ export const useSubscription = () => {
         console.warn('Subscription table not found, using default free plan:', tableError);
       }
 
-      setSubscription(subData || null);
+      // Map DB record (snake_case) to our interface (camelCase)
+      let mappedSub: UserSubscription | null = null;
+      if (subData) {
+        mappedSub = {
+          id: subData.id,
+          userId: subData.user_id,
+          planId: subData.plan_id,
+          status: subData.status,
+          currentPeriodStart: subData.current_period_start,
+          currentPeriodEnd: subData.current_period_end,
+          cancelAtPeriodEnd: !!subData.cancel_at_period_end,
+          stripeSubscriptionId: subData.stripe_subscription_id || undefined,
+          stripeCustomerId: subData.stripe_customer_id || undefined,
+        } as UserSubscription;
+      }
+
+      setSubscription(mappedSub);
 
       // Fetch usage stats (only if user is authenticated)
       let imagesResult = { count: 0 };
@@ -134,9 +150,9 @@ export const useSubscription = () => {
         unprocessedResult = unprocessedRes;
       }
 
-      const currentPlan = subData ? PLANS.find(p => p.id === subData.plan_id) : PLANS[0];
+      const currentPlan = mappedSub ? PLANS.find(p => p.id === mappedSub.planId) : PLANS[0];
       console.log('🔍 Plan detection:', { 
-        subData: subData ? { plan_id: subData.plan_id } : null, 
+        subData: mappedSub ? { plan_id: mappedSub.planId } : null, 
         currentPlan: currentPlan?.name,
         availablePlans: PLANS.map(p => ({ id: p.id, name: p.name }))
       });
@@ -246,9 +262,23 @@ export const useSubscription = () => {
         body: JSON.stringify({ subscriptionId: subscription.stripeSubscriptionId })
       });
 
+      // Some runtimes return 204 No Content on success
+      if (response.status === 204) {
+        toast.success('Subscription canceled successfully');
+        await fetchSubscription();
+        return;
+      }
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to cancel subscription');
+        let message = 'Failed to cancel subscription';
+        try {
+          const error = await response.json();
+          message = error?.message || message;
+        } catch {
+          // Non-JSON or empty body
+          message = `${response.status} ${response.statusText}`.trim();
+        }
+        throw new Error(message);
       }
 
       toast.success('Subscription canceled successfully');
@@ -259,13 +289,13 @@ export const useSubscription = () => {
       // On cancel, set archive timers if over limit (done in fetchSubscription)
     } catch (error) {
       console.error('Error canceling subscription:', error);
-      toast.error('Failed to cancel subscription');
+      toast.error((error as any)?.message || 'Failed to cancel subscription');
       throw error;
     }
   };
 
   const getCurrentPlan = (): SubscriptionPlan => {
-    if (!subscription) return PLANS[0]; // Default to free plan
+    if (!subscription) return PLANS[0];
     return PLANS.find(p => p.id === subscription.planId) || PLANS[0];
   };
 

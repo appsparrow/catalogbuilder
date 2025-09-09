@@ -311,22 +311,32 @@ export const useProducts = () => {
     }
   };
 
-  const deleteProduct = async (productId: string) => {
+  const getProductCatalogUsage = async (productId: string): Promise<{ count: number; catalogNames: string[] }> => {
     try {
-      // First check if product is part of any catalog
-      const { data: catalogProducts, error: checkError } = await supabase
+      const { data, error } = await supabase
         .from('catalog_products')
         .select('catalog_id, catalogs(name)')
         .eq('product_id', productId);
 
-      if (checkError) {
-        console.error('❌ Error checking catalog usage:', checkError);
-        throw checkError;
+      if (error) {
+        console.error('❌ Error fetching product catalog usage:', error);
+        throw error;
       }
 
-      if (catalogProducts && catalogProducts.length > 0) {
-        const catalogNames = catalogProducts.map(cp => cp.catalogs?.name).filter(Boolean);
-        throw new Error(`Cannot delete product: It is currently used in ${catalogNames.length} catalog(s): ${catalogNames.join(', ')}`);
+      const names = (data || []).map((cp: any) => cp.catalogs?.name).filter(Boolean) as string[];
+      return { count: names.length, catalogNames: names };
+    } catch (err) {
+      console.error('❌ getProductCatalogUsage error:', err);
+      return { count: 0, catalogNames: [] };
+    }
+  };
+
+  const deleteProduct = async (productId: string) => {
+    try {
+      // First check if product is part of any catalog
+      const usage = await getProductCatalogUsage(productId);
+      if (usage.count > 0) {
+        throw new Error(`Cannot delete product: It is currently used in ${usage.count} catalog(s): ${usage.catalogNames.join(', ')}`);
       }
 
       // If not in any catalog, proceed with deletion
@@ -372,6 +382,7 @@ export const useProducts = () => {
     uploadImage,
     updateProduct,
     updateProductStatus,
+    getProductCatalogUsage,
     deleteProduct,
     refetch: fetchProducts,
   };

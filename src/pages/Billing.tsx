@@ -56,6 +56,10 @@ export default function Billing() {
     );
   }
 
+  const renewalText = subscription && subscription.currentPeriodEnd
+    ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
+    : null;
+
   return (
     <div className="min-h-screen bg-app-gradient">
       {/* Header */}
@@ -143,13 +147,20 @@ export default function Billing() {
                   {/* Action Button */}
                   <div className="text-center mb-8">
                     {isCurrentPlan ? (
-                      <Button 
-                        disabled 
-                        variant="secondary"
-                        className="w-full"
-                      >
-                        Current Active Plan
-                      </Button>
+                      <>
+                        <Button 
+                          disabled 
+                          variant="secondary"
+                          className="w-full"
+                        >
+                          Current Active Plan
+                        </Button>
+                        {!isFree && renewalText && (
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            Renews on {renewalText}
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <Button 
                         onClick={() => handleUpgrade(plan.id)}
