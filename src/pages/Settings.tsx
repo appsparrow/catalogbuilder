@@ -13,6 +13,7 @@ interface ProfileSettings {
   companyName: string;
   contactEmail: string;
   contactPhone: string;
+  websiteUrl: string;
   logoUrl: string;
 }
 
@@ -26,6 +27,7 @@ export default function Settings() {
     companyName: '',
     contactEmail: '',
     contactPhone: '',
+    websiteUrl: '',
     logoUrl: '',
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -202,6 +204,18 @@ export default function Settings() {
                 value={settings.contactPhone}
                 onChange={(e) => handleInputChange('contactPhone', e.target.value)}
                 placeholder="Enter contact phone number"
+              />
+            </div>
+
+            {/* Website URL */}
+            <div className="space-y-2">
+              <Label htmlFor="websiteUrl">Website URL</Label>
+              <Input
+                id="websiteUrl"
+                type="url"
+                value={settings.websiteUrl}
+                onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
+                placeholder="https://yourcompany.com"
               />
             </div>
 

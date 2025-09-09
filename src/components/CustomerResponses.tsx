@@ -46,11 +46,7 @@ export const CustomerResponses = ({ catalogId, catalogName }: CustomerResponsesP
   }
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900">
-        Customer Responses for "{catalogName}"
-      </h3>
-      
+    <div className="space-y-4">
       {responses.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-600 text-lg">No customer responses yet</p>

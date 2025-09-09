@@ -5,6 +5,7 @@ import { ProductDetailsModal } from "./ProductDetailsModal";
 import { ProductsLibrary } from "./ProductsLibrary";
 import { CatalogCreator } from "./CatalogCreator";
 import { CatalogManagement } from "./CatalogManagement";
+import { CatalogManagementSplit } from "./CatalogManagementSplit";
 import { useProducts } from "@/hooks/useProducts";
 import { useCatalogs } from "@/hooks/useCatalogs";
 import { useUnprocessedProducts } from "@/hooks/useUnprocessedProducts";
@@ -258,10 +259,7 @@ export const MainDashboard = ({ activeView, onViewChange }: MainDashboardProps) 
         )}
 
         {currentView === 'management' && (
-          <CatalogManagement 
-            catalogs={catalogs} 
-            onCatalogDeleted={refetchCatalogs}
-          />
+          <CatalogManagementSplit />
         )}
       </main>
 
