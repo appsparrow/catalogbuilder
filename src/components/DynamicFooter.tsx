@@ -1,4 +1,5 @@
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
+import { Link } from 'react-router-dom';
 
 export const DynamicFooter = () => {
   const { profile } = useCompanyProfile();

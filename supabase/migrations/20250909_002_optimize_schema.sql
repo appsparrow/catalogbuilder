@@ -1,14 +1,7 @@
 -- Migration: Optimize Schema for Simple Product Catalog App
 -- Description: Streamlines tables, adds proper indexing, and ensures data isolation
 
--- 1. Clean up unused tables and subscription-related tables
-DROP TABLE IF EXISTS public.companies CASCADE;
-DROP TABLE IF EXISTS public.admin_emails CASCADE;
-DROP TABLE IF EXISTS public.users CASCADE;
-DROP TABLE IF EXISTS public.user_subscriptions CASCADE;
-DROP TABLE IF EXISTS public.user_plans CASCADE;
-
--- Create or update user_settings table (replacing company_profiles)
+-- 1. Create or update user_settings table
 CREATE TABLE IF NOT EXISTS public.user_settings (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -24,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.user_settings (
     CONSTRAINT user_settings_user_id_key UNIQUE (user_id)
 );
 
--- Migrate data from company_profiles if it exists
+-- 2. Migrate data from company_profiles if it exists
 DO $$
 BEGIN
     IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'company_profiles') THEN
@@ -54,76 +47,29 @@ BEGIN
     END IF;
 END $$;
 
--- Now safe to drop company_profiles
+-- 3. Drop old company_profiles table
 DROP TABLE IF EXISTS public.company_profiles CASCADE;
 
--- Add RLS to user_settings
-ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
-
--- Add policies for user_settings
-CREATE POLICY "Users can view their own settings"
-    ON public.user_settings FOR SELECT
-    TO authenticated
-    USING (user_id = auth.uid());
-
-CREATE POLICY "Users can update their own settings"
-    ON public.user_settings FOR ALL
-    TO authenticated
-    USING (user_id = auth.uid())
-    WITH CHECK (user_id = auth.uid());
-
--- Add function to update settings with timestamp
-CREATE OR REPLACE FUNCTION update_user_settings_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_user_settings_timestamp
-    BEFORE UPDATE ON public.user_settings
-    FOR EACH ROW
-    EXECUTE FUNCTION update_user_settings_updated_at();
-
--- Create simplified user_limits table
-CREATE TABLE public.user_limits (
-    user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    max_products integer NOT NULL DEFAULT 100,
-    max_catalogs integer NOT NULL DEFAULT 10,
-    is_admin boolean NOT NULL DEFAULT false,
-    created_at timestamp with time zone NOT NULL DEFAULT now(),
-    updated_at timestamp with time zone NOT NULL DEFAULT now()
-);
-
--- Add comments to clarify table purposes
-COMMENT ON TABLE public.products IS 'Product catalog items';
-COMMENT ON TABLE public.catalogs IS 'Customer-specific product catalogs';
-COMMENT ON TABLE public.catalog_products IS 'Junction table linking catalogs to products';
-COMMENT ON TABLE public.customer_responses IS 'Customer feedback and interactions with catalogs';
-COMMENT ON TABLE public.user_usage IS 'Usage tracking for limits';
-COMMENT ON TABLE public.user_limits IS 'User-specific feature limits';
-
--- 3. Optimize catalogs table
-ALTER TABLE public.catalogs
-    DROP COLUMN IF EXISTS company_id,
-    ADD COLUMN IF NOT EXISTS description text,
-    ADD COLUMN IF NOT EXISTS website_url text,
-    ADD COLUMN IF NOT EXISTS theme jsonb DEFAULT '{"primary_color": "#4F46E5", "secondary_color": "#10B981"}';
-
--- 4. Optimize products table
+-- 4. Update products table
 ALTER TABLE public.products
     DROP COLUMN IF EXISTS company_id,
     ADD COLUMN IF NOT EXISTS description text,
     ADD COLUMN IF NOT EXISTS price decimal(10,2),
     ADD COLUMN IF NOT EXISTS metadata jsonb DEFAULT '{}';
 
--- 5. Add better indexing
+-- 5. Update catalogs table
+ALTER TABLE public.catalogs
+    DROP COLUMN IF EXISTS company_id,
+    ADD COLUMN IF NOT EXISTS description text,
+    ADD COLUMN IF NOT EXISTS theme jsonb DEFAULT '{"primary_color": "#4F46E5", "secondary_color": "#10B981"}';
+
+-- 6. Add better indexing
 -- Products indexes
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category);
 CREATE INDEX IF NOT EXISTS idx_products_supplier ON public.products(supplier);
 CREATE INDEX IF NOT EXISTS idx_products_code ON public.products(code);
 CREATE INDEX IF NOT EXISTS idx_products_active_user ON public.products(user_id) WHERE isactive = true;
+CREATE INDEX IF NOT EXISTS idx_products_price ON public.products(price);
 
 -- Catalogs indexes
 CREATE INDEX IF NOT EXISTS idx_catalogs_active_user ON public.catalogs(user_id) WHERE archived_at IS NULL;
@@ -132,99 +78,47 @@ CREATE INDEX IF NOT EXISTS idx_catalogs_shareable ON public.catalogs(shareable_l
 -- Customer responses indexes
 CREATE INDEX IF NOT EXISTS idx_customer_responses_catalog ON public.customer_responses(catalog_id);
 CREATE INDEX IF NOT EXISTS idx_customer_responses_email ON public.customer_responses(customer_email);
+CREATE INDEX IF NOT EXISTS idx_customer_responses_created ON public.customer_responses(created_at DESC);
 
--- Subscription indexes
-CREATE INDEX IF NOT EXISTS idx_user_plans_active ON public.user_plans(user_id) WHERE status = 'active';
-CREATE INDEX IF NOT EXISTS idx_user_subscriptions_active ON public.user_subscriptions(user_id, created_at DESC);
-
--- 6. Add useful views
-CREATE OR REPLACE VIEW public.active_catalogs AS
-SELECT c.*, 
-       COUNT(DISTINCT cp.product_id) as product_count,
-       COUNT(DISTINCT cr.id) as response_count
-FROM catalogs c
-LEFT JOIN catalog_products cp ON c.id = cp.catalog_id
-LEFT JOIN customer_responses cr ON c.id = cr.catalog_id
-WHERE c.archived_at IS NULL
-GROUP BY c.id;
-
-CREATE OR REPLACE VIEW public.product_stats AS
-SELECT p.*,
-       COUNT(DISTINCT cp.catalog_id) as catalog_count,
-       COUNT(DISTINCT c.id) filter (where c.archived_at is null) as active_catalog_count
-FROM products p
-LEFT JOIN catalog_products cp ON p.id = cp.product_id
-LEFT JOIN catalogs c ON cp.catalog_id = c.id
-WHERE p.isactive = true
-GROUP BY p.id;
-
--- 7. Add helpful functions
-CREATE OR REPLACE FUNCTION public.search_products(
-    search_term text,
-    user_id uuid,
-    include_archived boolean DEFAULT false
-) RETURNS SETOF products AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.*
-    FROM products p
-    WHERE p.user_id = search_products.user_id
-    AND (
-        include_archived OR p.archived_at IS NULL
-    )
-    AND (
-        p.name ILIKE '%' || search_term || '%'
-        OR p.code ILIKE '%' || search_term || '%'
-        OR p.category ILIKE '%' || search_term || '%'
-        OR p.supplier ILIKE '%' || search_term || '%'
-    )
-    ORDER BY 
-        CASE WHEN p.name ILIKE search_term || '%' THEN 0
-             WHEN p.name ILIKE '%' || search_term || '%' THEN 1
-             ELSE 2
-        END,
-        p.created_at DESC;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 8. Update RLS policies
--- Enable RLS
+-- 7. Add RLS to all tables
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalogs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalog_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customer_responses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if they exist
+-- 8. Drop existing policies
 DO $$ 
 BEGIN
-    -- Products policies
+    -- Drop products policies
     DROP POLICY IF EXISTS "Users can view their own products" ON public.products;
+    DROP POLICY IF EXISTS "Users can manage their own products" ON public.products;
     DROP POLICY IF EXISTS "Users can insert their own products" ON public.products;
     DROP POLICY IF EXISTS "Users can update their own products" ON public.products;
     
-    -- Catalogs policies
+    -- Drop catalogs policies
     DROP POLICY IF EXISTS "Users can view their own catalogs" ON public.catalogs;
     DROP POLICY IF EXISTS "Anyone can view shared catalogs" ON public.catalogs;
     DROP POLICY IF EXISTS "Users can manage their own catalogs" ON public.catalogs;
     
-    -- Customer responses policies
+    -- Drop user settings policies
+    DROP POLICY IF EXISTS "Users can view their own settings" ON public.user_settings;
+    DROP POLICY IF EXISTS "Users can manage their own settings" ON public.user_settings;
+    
+    -- Drop customer responses policies
     DROP POLICY IF EXISTS "Users can view responses to their catalogs" ON public.customer_responses;
     DROP POLICY IF EXISTS "Anyone can submit responses" ON public.customer_responses;
 END $$;
 
+-- 9. Create new RLS policies
 -- Products policies
 CREATE POLICY "Users can view their own products"
     ON public.products FOR SELECT
     TO authenticated
     USING (user_id = auth.uid());
 
-CREATE POLICY "Users can insert their own products"
-    ON public.products FOR INSERT
-    TO authenticated
-    WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "Users can update their own products"
-    ON public.products FOR UPDATE
+CREATE POLICY "Users can manage their own products"
+    ON public.products FOR ALL
     TO authenticated
     USING (user_id = auth.uid())
     WITH CHECK (user_id = auth.uid());
@@ -242,6 +136,18 @@ CREATE POLICY "Anyone can view shared catalogs"
 
 CREATE POLICY "Users can manage their own catalogs"
     ON public.catalogs FOR ALL
+    TO authenticated
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+
+-- User settings policies
+CREATE POLICY "Users can view their own settings"
+    ON public.user_settings FOR SELECT
+    TO authenticated
+    USING (user_id = auth.uid());
+
+CREATE POLICY "Users can manage their own settings"
+    ON public.user_settings FOR ALL
     TO authenticated
     USING (user_id = auth.uid())
     WITH CHECK (user_id = auth.uid());
@@ -267,15 +173,58 @@ CREATE POLICY "Anyone can submit responses"
         )
     );
 
--- 9. Initialize user limits for existing users
-INSERT INTO public.user_limits (user_id)
-SELECT id FROM auth.users
-WHERE NOT EXISTS (
-    SELECT 1 FROM public.user_limits ul 
-    WHERE ul.user_id = auth.users.id
-);
+-- 9. Add helpful views
+CREATE OR REPLACE VIEW public.active_catalogs AS
+SELECT 
+    c.*,
+    COUNT(DISTINCT cp.product_id) as product_count,
+    COUNT(DISTINCT cr.id) as response_count,
+    us.company_name,
+    us.logo_url as company_logo
+FROM catalogs c
+LEFT JOIN catalog_products cp ON c.id = cp.catalog_id
+LEFT JOIN customer_responses cr ON c.id = cr.catalog_id
+LEFT JOIN user_settings us ON c.user_id = us.user_id
+WHERE c.archived_at IS NULL
+GROUP BY c.id, us.company_name, us.logo_url;
 
--- 10. Add triggers and functions for usage management
+CREATE OR REPLACE VIEW public.product_stats AS
+SELECT 
+    p.*,
+    COUNT(DISTINCT cp.catalog_id) as catalog_count,
+    COUNT(DISTINCT c.id) filter (where c.archived_at is null) as active_catalog_count
+FROM products p
+LEFT JOIN catalog_products cp ON p.id = cp.product_id
+LEFT JOIN catalogs c ON cp.catalog_id = c.id
+WHERE p.isactive = true
+GROUP BY p.id;
+
+-- 10. Add triggers for automatic timestamps
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add update timestamp triggers to all relevant tables
+CREATE TRIGGER update_products_timestamp
+    BEFORE UPDATE ON products
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER update_catalogs_timestamp
+    BEFORE UPDATE ON catalogs
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER update_user_settings_timestamp
+    BEFORE UPDATE ON user_settings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at();
+
+-- 11. Add usage limit check triggers
 CREATE OR REPLACE FUNCTION check_user_limits()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -315,7 +264,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Add triggers to check limits before insert
+-- Add limit check triggers
 CREATE TRIGGER check_product_limits
     BEFORE INSERT ON products
     FOR EACH ROW
@@ -325,25 +274,3 @@ CREATE TRIGGER check_catalog_limits
     BEFORE INSERT ON catalogs
     FOR EACH ROW
     EXECUTE FUNCTION check_user_limits();
-
--- Function to update user_limits
-CREATE OR REPLACE FUNCTION update_user_limits(
-    p_user_id uuid,
-    p_max_products integer DEFAULT NULL,
-    p_max_catalogs integer DEFAULT NULL,
-    p_is_admin boolean DEFAULT NULL
-) RETURNS void AS $$
-BEGIN
-    INSERT INTO user_limits (user_id, max_products, max_catalogs, is_admin)
-    VALUES (p_user_id, 
-            COALESCE(p_max_products, 100), 
-            COALESCE(p_max_catalogs, 10), 
-            COALESCE(p_is_admin, false))
-    ON CONFLICT (user_id) 
-    DO UPDATE SET
-        max_products = COALESCE(p_max_products, user_limits.max_products),
-        max_catalogs = COALESCE(p_max_catalogs, user_limits.max_catalogs),
-        is_admin = COALESCE(p_is_admin, user_limits.is_admin),
-        updated_at = now();
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
