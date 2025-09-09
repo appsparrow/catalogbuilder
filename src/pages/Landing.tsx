@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DynamicFooter } from '@/components/DynamicFooter';
+import { LandingFooter } from '@/components/LandingFooter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -482,7 +482,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <DynamicFooter />
+      <LandingFooter />
     </div>
   );
 }

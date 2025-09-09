@@ -11,6 +11,10 @@ interface CompanyProfile {
   email: string;
   website_url: string | null;
   logo_url: string | null;
+  theme?: {
+    primary_color: string;
+    secondary_color: string;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -29,7 +33,7 @@ export const useCompanyProfile = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('company_profiles')
+        .from('user_settings')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -61,7 +65,7 @@ export const useCompanyProfile = () => {
       if (profile) {
         // Update existing profile
         const { error } = await supabase
-          .from('company_profiles')
+          .from('user_settings')
           .update({
             company_name: profileData.company_name,
             contact_person: profileData.contact_person,
@@ -69,6 +73,7 @@ export const useCompanyProfile = () => {
             email: profileData.email,
             website_url: profileData.website_url,
             logo_url: profileData.logo_url,
+            theme: profileData.theme || profile.theme,
           })
           .eq('user_id', user.id);
 
@@ -76,7 +81,7 @@ export const useCompanyProfile = () => {
       } else {
         // Create new profile
         const { error } = await supabase
-          .from('company_profiles')
+          .from('user_settings')
           .insert({
             user_id: user.id,
             company_name: profileData.company_name || '',
@@ -85,6 +90,10 @@ export const useCompanyProfile = () => {
             email: profileData.email || '',
             website_url: profileData.website_url || null,
             logo_url: profileData.logo_url || null,
+            theme: profileData.theme || {
+              primary_color: "#4F46E5",
+              secondary_color: "#10B981"
+            },
           });
 
         if (error) throw error;
