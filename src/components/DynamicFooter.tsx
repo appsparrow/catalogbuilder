@@ -1,38 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-
-interface ProfileSettings {
-  companyName: string;
-  contactEmail: string;
-  contactPhone: string;
-  websiteUrl: string;
-  logoUrl: string;
-}
+import { useCompanyProfile } from '@/hooks/useCompanyProfile';
 
 export const DynamicFooter = () => {
-  const [settings, setSettings] = useState<ProfileSettings>({
-    companyName: '',
-    contactEmail: '',
-    contactPhone: '',
-    websiteUrl: '',
-    logoUrl: '',
-  });
+  const { profile } = useCompanyProfile();
 
-  useEffect(() => {
-    const saved = localStorage.getItem('profile-settings');
-    if (saved) {
-      try {
-        const parsedSettings = JSON.parse(saved);
-        setSettings(parsedSettings);
-      } catch (e) {
-        console.error('Failed to parse saved settings:', e);
-      }
-    }
-  }, []);
-
-  const companyName = settings.companyName || 'Cuzata';
-  const websiteUrl = settings.websiteUrl || 'https://cuzata.com';
-  const contactEmail = settings.contactEmail || 'support@cuzata.com';
+  const companyName = profile?.company_name || 'Cuzata';
+  const websiteUrl = profile?.website_url || 'https://cuzata.com';
+  const contactEmail = profile?.email || 'support@cuzata.com';
 
   return (
     <footer className="bg-gray-900 text-white py-16">
@@ -49,7 +22,7 @@ export const DynamicFooter = () => {
             <p className="text-gray-400 text-sm">
               Custom catalogs - built by Cuzata for {companyName}
             </p>
-            {settings.websiteUrl && (
+            {profile?.website_url && (
               <p className="text-gray-400 text-sm mt-2">
                 <a 
                   href={websiteUrl} 

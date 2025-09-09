@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLogoUpload } from '@/hooks/useLogoUpload';
+import { useCompanyProfile } from '@/hooks/useCompanyProfile';
 import { ArrowLeft, Upload, Save, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +21,7 @@ interface ProfileSettings {
 export default function Settings() {
   const { user } = useAuth();
   const { uploadLogo } = useLogoUpload();
+  const { profile, loading: profileLoading, saving, saveProfile } = useCompanyProfile();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -31,20 +33,20 @@ export default function Settings() {
     logoUrl: '',
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // Load settings from localStorage on mount
+  // Load settings from database when profile loads
   useEffect(() => {
-    const saved = localStorage.getItem('profile-settings');
-    if (saved) {
-      try {
-        setSettings(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse saved settings:', e);
-      }
+    if (profile) {
+      setSettings({
+        companyName: profile.company_name || '',
+        contactEmail: profile.email || '',
+        contactPhone: profile.contact_phone || '',
+        websiteUrl: profile.website_url || '',
+        logoUrl: profile.logo_url || '',
+      });
     }
-  }, []);
+  }, [profile]);
 
   const handleInputChange = (field: keyof ProfileSettings, value: string) => {
     setSettings(prev => ({ ...prev, [field]: value }));
@@ -64,7 +66,6 @@ export default function Settings() {
   };
 
   const handleSave = async () => {
-    setLoading(true);
     try {
       let logoUrl = settings.logoUrl;
       
@@ -75,12 +76,14 @@ export default function Settings() {
       
       const finalSettings = { ...settings, logoUrl };
       
-      // Save to localStorage
-      localStorage.setItem('profile-settings', JSON.stringify(finalSettings));
-      
-      toast({
-        title: "Settings saved",
-        description: "Your profile settings have been updated",
+      // Save to database
+      await saveProfile({
+        company_name: finalSettings.companyName,
+        contact_person: finalSettings.companyName, // Using company name as contact person for now
+        contact_phone: finalSettings.contactPhone,
+        email: finalSettings.contactEmail,
+        website_url: finalSettings.websiteUrl,
+        logo_url: finalSettings.logoUrl,
       });
       
       setSettings(finalSettings);
@@ -91,13 +94,6 @@ export default function Settings() {
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save settings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -223,7 +219,7 @@ export default function Settings() {
             <div className="flex justify-end">
               <Button 
                 onClick={handleSave} 
-                disabled={loading}
+                disabled={saving}
                 className={saved ? 'bg-green-600 hover:bg-green-700' : ''}
               >
                 {saved ? (
@@ -231,7 +227,7 @@ export default function Settings() {
                     <Check className="mr-2 h-4 w-4" />
                     Saved!
                   </>
-                ) : loading ? (
+                ) : saving ? (
                   <>
                     <Save className="mr-2 h-4 w-4 animate-spin" />
                     Saving...
