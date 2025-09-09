@@ -27,6 +27,7 @@ export const UserMenu = () => {
     navigate('/billing');
   };
 
+
   if (!user) return null;
 
   return (

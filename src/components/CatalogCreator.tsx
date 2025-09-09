@@ -66,10 +66,10 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
   };
 
   const handleCreateCatalog = async () => {
-    if (!catalogName || !customerName) {
+    if (!catalogName || !customerName || !companyName) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields including company name",
         variant: "destructive"
       });
       return;
@@ -169,16 +169,15 @@ export const CatalogCreator = ({ selectedProducts, onBack, onCatalogCreate }: Ca
             </div>
             
             <div>
-              <Label htmlFor="company-name">Company Name</Label>
+              <Label htmlFor="company-name">Company Name *</Label>
               <Input
                 id="company-name"
                 value={companyName}
-                disabled
-                placeholder="Set in Settings"
-                className="bg-muted"
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Enter your company name"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Company name is set in Settings page
+                {companyName ? 'Pre-filled from Settings. You can change it here.' : 'Set your company name in Settings or enter it here.'}
               </p>
             </div>
             

@@ -17,6 +17,13 @@ export default defineConfig(({ mode }) => ({
         manualChunks: undefined,
       },
     },
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log statements in production
+        drop_debugger: true, // Remove debugger statements in production
+      },
+    },
   },
   plugins: [
     react(),

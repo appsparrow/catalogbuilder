@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { MainDashboard } from "@/components/MainDashboard";
 import { UserMenu } from "@/components/UserMenu";
+import { DebugToggle } from "@/components/DebugToggle";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
@@ -131,6 +132,9 @@ export default function Index() {
 
       {/* Main Content */}
       <MainDashboard activeView={activeView} onViewChange={setActiveView} />
+
+      {/* Debug Toggle */}
+      <DebugToggle />
 
       {/* Footer */}
       <footer className="mt-8 pt-6 pb-8 border-t border-border text-center bg-white/50 backdrop-blur-sm">

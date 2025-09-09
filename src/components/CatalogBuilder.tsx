@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Product, CatalogWithProducts } from "@/types/catalog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,21 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
   const { toast } = useToast();
   const { uploadLogo } = useLogoUpload();
 
+  // Load company name from settings
+  useEffect(() => {
+    const saved = localStorage.getItem('profile-settings');
+    if (saved) {
+      try {
+        const settings = JSON.parse(saved);
+        if (settings.companyName) {
+          setBrandName(settings.companyName);
+        }
+      } catch (e) {
+        console.error('Failed to parse saved settings:', e);
+      }
+    }
+  }, []);
+
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -61,7 +76,7 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
     if (!catalogName || !brandName || !customerName || selectedProducts.length === 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all fields and select at least one product",
+        description: "Please fill in all required fields and select at least one product",
         variant: "destructive"
       });
       return;
@@ -127,13 +142,16 @@ export const CatalogBuilder = ({ products, onCatalogCreate, catalogs }: CatalogB
             </div>
             
             <div>
-              <Label htmlFor="brand-name" className="text-foreground">Brand Name</Label>
+              <Label htmlFor="brand-name" className="text-foreground">Brand Name *</Label>
               <Input
                 id="brand-name"
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
                 placeholder="Enter your brand name"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                {brandName ? 'Pre-filled from Settings. You can change it here.' : 'Set your company name in Settings or enter it here.'}
+              </p>
             </div>
 
             <div>

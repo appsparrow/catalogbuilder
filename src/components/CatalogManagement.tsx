@@ -117,6 +117,17 @@ export const CatalogManagement = () => {
         <p className="text-muted-foreground text-center mb-6">Manage and share your product catalogs with customers</p>
       </div>
       
+      {catalogs.length > (usage?.maxCatalogs ?? catalogs.length) && (
+        <div className="mb-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="text-sm text-foreground">
+            Showing first {usage?.maxCatalogs} of {catalogs.length} catalogs. Upgrade to view all.
+          </div>
+          <Button onClick={() => window.location.assign('/billing')} className="w-full sm:w-auto">
+            Upgrade to Starter
+          </Button>
+        </div>
+      )}
+
       <div className="space-y-4">
         {(catalogs.slice(0, usage?.maxCatalogs ?? catalogs.length)).map(catalog => (
           <Card 

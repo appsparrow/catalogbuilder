@@ -10,6 +10,10 @@ import NotFound from './pages/NotFound';
 import Admin from './pages/Admin';
 import CatalogPage from './pages/CatalogPage';
 import PromoPage from './pages/PromoPage';
+import FAQ from './pages/FAQ';
+import Info from './pages/Info';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import { StripeTest } from './pages/StripeTest';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -31,6 +35,10 @@ function App() {
           <Route path="/stripe-test" element={loading ? null : (user ? <StripeTest /> : <Navigate to="/login" replace />)} />
           <Route path="/features" element={<MVPFeatures />} />
           <Route path="/promo" element={<PromoPage />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/info" element={<Info />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/catalog/:shareableLink" element={<CatalogPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

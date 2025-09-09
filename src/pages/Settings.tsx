@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLogoUpload } from '@/hooks/useLogoUpload';
-import { ArrowLeft, Upload, Save } from 'lucide-react';
+import { ArrowLeft, Upload, Save, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,6 +30,7 @@ export default function Settings() {
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -82,6 +83,10 @@ export default function Settings() {
       
       setSettings(finalSettings);
       setLogoFile(null);
+      setSaved(true);
+      
+      // Reset saved state after 3 seconds
+      setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
@@ -202,11 +207,37 @@ export default function Settings() {
 
             {/* Save Button */}
             <div className="flex justify-end">
-              <Button onClick={handleSave} disabled={loading}>
-                <Save className="mr-2 h-4 w-4" />
-                {loading ? 'Saving...' : 'Save Settings'}
+              <Button 
+                onClick={handleSave} 
+                disabled={loading}
+                className={saved ? 'bg-green-600 hover:bg-green-700' : ''}
+              >
+                {saved ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Saved!
+                  </>
+                ) : loading ? (
+                  <>
+                    <Save className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Settings
+                  </>
+                )}
               </Button>
             </div>
+            
+            {/* Success Message */}
+            {saved && (
+              <div className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Settings saved successfully!
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>

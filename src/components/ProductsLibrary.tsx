@@ -71,11 +71,10 @@ export const ProductsLibrary = ({
   });
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showInactive, setShowInactive] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<{url: string, name: string} | null>(null);
-  const { usage } = useSubscription();
+  const { usage, createCheckoutSession } = useSubscription();
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     productId: string;
@@ -94,7 +93,7 @@ export const ProductsLibrary = ({
   // Filter products by status
   const processedProducts = products.filter(product => 
     product.isActive !== false && 
-    (!product.archived_at || showArchived) &&
+    !product.archived_at &&
     (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,7 +102,7 @@ export const ProductsLibrary = ({
 
   const inactiveProducts = products.filter(product => 
     product.isActive === false &&
-    (!product.archived_at || showArchived) &&
+    !product.archived_at &&
     (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -419,6 +418,17 @@ export const ProductsLibrary = ({
         </div>
       </div>
 
+      {hiddenCount > 0 && (
+        <div className="mb-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="text-sm text-foreground">
+            Showing first {shownCount} of {totalCount} products. Upgrade to view all.
+          </div>
+          <Button onClick={() => createCheckoutSession('starter')} className="w-full sm:w-auto">
+            Upgrade to Starter
+          </Button>
+        </div>
+      )}
+
       {/* Sticky Create Catalog Button */}
       {selectedProducts.length >= 2 && (
         <div className="sticky top-4 z-10 mb-6 mt-4">
@@ -474,14 +484,6 @@ export const ProductsLibrary = ({
               className="text-xs sm:text-sm"
             >
               Show Inactive
-            </Button>
-            <Button
-              variant={showArchived ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setShowArchived(!showArchived)}
-              className="text-xs sm:text-sm"
-            >
-              {showArchived ? 'Hide Archived' : 'Show Archived'}
             </Button>
           </div>
         </div>
