@@ -52,11 +52,11 @@ export const PLANS: SubscriptionPlan[] = [
     price: 0,
     currency: 'usd',
     interval: 'month',
-    maxImages: 4,
-    maxCatalogs: 2,
+    maxImages: 100,
+    maxCatalogs: 10,
     features: [
-      'Upload up to 4 images',
-      'Create up to 2 catalogs',
+      'Upload up to 100 images',
+      'Create up to 10 catalogs',
       'Customer feedback',
       'Email support'
     ]
@@ -68,11 +68,11 @@ export const PLANS: SubscriptionPlan[] = [
     price: 10,
     currency: 'usd',
     interval: 'month',
-    maxImages: 6,
-    maxCatalogs: 4,
+    maxImages: 1000,
+    maxCatalogs: 25,
     features: [
-      'Upload up to 6 images',
-      'Create up to 4 catalogs',
+      'Upload up to 1000 images',
+      'Create up to 25 catalogs',
       'Customer feedback',
       'Email support'
     ],
